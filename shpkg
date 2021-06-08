@@ -488,7 +488,7 @@ shpkg-show-help(){
 	moreover it still accesses sudo for dependency installation depending on a package
 
 	If you want to create a package, see:
-	https://github.com/shpkg/shpkg
+	https://github.com/shpkg/ports
 
 	more information about shpkg, see https://github.com/shpkg/shpkg
 	EOM

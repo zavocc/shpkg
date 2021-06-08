@@ -22,9 +22,7 @@ Optional dependencies for shpkg
 * unzip (for dealing with zip tarballs)
 
 # Installation
-once you have dependencies installed [download](https://raw.githubusercontent.com/shpkg/shpkg/master/shpkg) the `shpkg` script
-
-place the script somewhere else, usually in `/usr/local/bin`
+once you have dependencies installed [download](https://raw.githubusercontent.com/shpkg/shpkg/master/shpkg) the `shpkg` script, you can install it by simply placing it into `/usr/local/bin` or `$PREFIX/bin` (for termux)
 
 # Package Installation
 Before installing packages with `shpkg`, make sure you have build scripts placed in:
