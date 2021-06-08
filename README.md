@@ -33,7 +33,7 @@ $HOME/.shpkg
 ```
 Inside that directory where `shpkg` gathers package build script information
 
-You can try adding sample build scripts by fetching [shpkg/ports](stub-link) repository
+You can try adding sample build scripts by fetching [shpkg/ports](https://github.com/shpkg/ports) repository
 ```
 git clone https://github.com/shpkg/ports $HOME/.shpkg
 ```
