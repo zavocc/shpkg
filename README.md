@@ -1,7 +1,7 @@
 # shpkg
 Simple package manager written in bash inspired by makepkg
 
-shpkg lets you install packages with the use of build scripts
+`shpkg` lets you install packages with the use of build scripts
 
 # Supported now
 currently, the following distributions supported are:
@@ -20,4 +20,49 @@ Current requirements for shpkg are
 
 Optional dependencies for shpkg
 * unzip (for dealing with zip tarballs)
+
+# Installation
+once you have dependencies installed [download](https://raw.githubusercontent.com/shpkg/shpkg/master/shpkg) the `shpkg` script
+
+place the script somewhere else, usually in `/usr/local/bin`
+
+# Package Installation
+Before installing packages with `shpkg`, make sure you have build scripts placed in:
+```
+$HOME/.shpkg
+```
+Inside that directory where `shpkg` gathers package build script information
+
+You can try adding sample build scripts by fetching [shpkg/ports](stub-link) repository
+```
+git clone https://github.com/shpkg/ports $HOME/.shpkg
+```
+
+For package installation, you can do
+```
+shpkg install <package>
+```
+
+*NOTE: running `shpkg` under `sudo` isn't necessary, `shpkg` will use sudo automatically*
+
+before installing packages, you can list the packages you added by doing
+```
+shpkg list
+```
+
+# Package Uninstallation
+You can simply uninstall package by doing
+```
+shpkg uninstall <package>
+```
+
+Depending on a package's build script, sometimes there's no `remove()` function and you won't be able to uninstall it properly, so be aware of that
+
+# Querying package Information
+You can look at the package's build script before installing so you will have the opportunity to look at them first before installing, you can do
+```
+shpkg query <package>
+```
+
+*It opens `less` as a default viewing of `shpkg` build scripts, if you want to change that behaviour, you can specify `PAGER=<viewer>` environment variable*
 
