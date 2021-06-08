@@ -64,3 +64,6 @@ shpkg query <package>
 
 *It opens `less` as a default viewing of `shpkg` build scripts, if you want to change that behaviour, you can specify `PAGER=<viewer>` environment variable*
 
+# To-Do
+* Add `shpkg update` option (similar to `apt update`)
+
