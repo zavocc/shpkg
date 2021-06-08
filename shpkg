@@ -1,0 +1,501 @@
+#!/usr/bin/env bash
+# shpkg - the package manager written in bash, specifically for linux
+
+set -e
+
+# termux's long prefix
+SHPKG_TERMUXROOT="/data/data/com.termux/files/"
+
+# shpkg name
+SHPKG_NAME="shpkg"
+
+# shpkg version
+SHPKG_VERSION="1.0.0"
+
+# shpkg maintainer
+SHPKG_MAINTAINER="marcusz"
+
+# shpkg package template directory
+SHPKG_PKGDIRS="${HOME}/.shpkg"
+
+# check distro
+if [ ! -f "${HOME}/.shpkg-lock" ]; then
+	if [ -f "/usr/bin/apt" ]; then
+		distro="debian"
+	elif [ -f "/usr/bin/pacman" ]; then
+		distro="archlinux"
+	elif [ -f "/usr/bin/dnf" ]; then
+		distro="redhat"
+	elif [ -f "/usr/bin/apk" ]; then
+		distro="alpine"
+	elif [ "${SHPKG_TERMUXROOT}/usr/bin/apt" ]; then
+		distro="termux"
+	else
+		cat <<- EOF
+		Error: this utility is not compatible with your operating system
+
+		Supported ones are:
+		 - Debian
+		 - Arch Linux
+		 - Fedora and other red-hat distros
+		 - Alpine
+		 - Android (Termux)
+
+		This would take some time to adapt new distros
+		EOF
+		exit 2
+	fi
+echo "${distro}" > "${HOME}/.shpkg-lock"
+fi
+
+# set distro
+SHPKG_DISTRO="$(cat ${HOME}/.shpkg-lock)"
+
+# check root
+case "${SHPKG_DISTRO}" in
+	termux)
+		SHPKG_SUDO=""
+		;;
+	debian|archlinux|redhat|alpine)
+		if [ "$(id -u)" == "0" ]; then
+			SHPKG_SUDO=""
+		else
+			SHPKG_SUDO="sudo -Es"
+		fi
+		;;
+	*)
+		exit 2
+		;;
+esac
+
+# set preferred distro-specific configurations
+case "${SHPKG_DISTRO}" in
+	termux)
+		SHPKG_INSTALL="pkg install --assume-yes"
+		SHPKG_REMOVE="pkg uninstall --purge --autoremove --assume-yes"
+		;;
+	debian)
+		SHPKG_INSTALL="apt install --assume-yes"
+		SHPKG_REMOVE="apt purge --autoremove --assume-yes"
+		;;
+	archlinux)
+		SHPKG_INSTALL="pacman -S --noconfirm --needed"
+		SHPKG_REMOVE="pacman -Rscn --noconfirm"
+		;;
+	redhat)
+		SHPKG_INSTALL="dnf install --assumeyes"
+		SHPKG_REMOVE="dnf autoremove --assumeyes"
+		;;
+	alpine)
+		SHPKG_INSTALL="apk add"
+		SHPKG_REMOVE="apk del"
+		;;
+	*)
+		exit 2
+		;;
+esac
+
+ARG_ACTION="$1"
+ARG_PACKAGE="$2"
+
+# parse arguments
+case "${ARG_ACTION}" in
+	install)
+		SHPKG_ACTION="shpkg-do-install"
+		;;
+	uninstall)
+		SHPKG_ACTION="shpkg-do-remove"
+		;;
+	query)
+		SHPKG_ACTION="shpkg-do-query"
+		;;
+	list)
+		SHPKG_ACTION="shpkg-do-list"
+		;;
+	*)
+		SHPKG_ACTION="shpkg-show-help"
+		;;
+esac
+
+check-package-ifexists(){
+	if [ -z "${ARG_PACKAGE}" ]; then
+		echo "Error: please query a package!"
+		exit 2
+	fi
+
+	# now check if packages directory exists
+	if [ ! -d "${SHPKG_PKGDIRS}/${ARG_PACKAGE}" ]; then
+		echo "Error: package dosen't exists in: ${SHPKG_PKGDIRS}"
+		exit 2
+	fi
+
+SHPKG_WHATISDIR="${SHPKG_PKGDIRS}/${ARG_PACKAGE}"
+}
+
+check-shpkg-build(){
+	if [ ! -f "${SHPKG_WHATISDIR}/SHPKG_BUILD" ]; then
+		cat <<- EOM
+		Error: you do not have SHPKG_BUILD file in the package directory
+
+		See https://github.com/shpkg/shpkg to learn more how to make one
+		EOM
+		exit 2
+	fi
+}
+
+shpkg-do-install(){
+	local PACKAGE_NAME
+	local DO_REMOVE_BUILDDEPS
+	local STRIP_TARBALL
+	local OUTPUT_CURL
+	local EXTRACTOR_MODE
+	local EXTRACTOR_PARAMS
+	local SRCDIR
+	local yesno
+	local guess_distro
+	local guess_arch
+	local real_arch
+
+	SRCDIR="pkgsrc"
+
+	check-package-ifexists # checks for package directory metadata
+	check-shpkg-build # checks for SHPKG_BUILD script
+
+	# source the SHPKG_BUILD script
+	source "${SHPKG_WHATISDIR}/SHPKG_BUILD"
+
+	# package name, else fallback
+	if [ -n "${shpkg_name}" ]; then
+		PACKAGE_NAME="${shpkg_name}"
+	else
+		PACKAGE_NAME="${ARG_PACKAGE}"
+	fi
+
+	# check if shpkg_source is specified
+	if [ -z "${shpkg_source}" ]; then
+		echo "Error: please specify a source code tarball url of a package!"
+		exit 2
+	fi
+
+	# if shpkg_distro_only value is specified, guess and check
+	# this allows for package to install in a specific distro only
+	if [ -n "${shpkg_distro_only}" ]; then
+		case "${shpkg_distro_only}" in
+			debian|ubuntu|kali|devuan)
+				guess_distro="debian"
+				;;
+			arch*|artix|endeavouros|arcolinux|manjaro)
+				guess_distro="archlinux"
+				;;
+			fedora|rhel|centos|redhat)
+				guess_distro="redhat"
+				;;
+			alpine)
+				guess_distro="alpine"
+				;;
+			termux|android)
+				guess_distro="termux"
+				;;
+			*)
+				cat <<- EOM
+				Error: the distro ${shpkg_distro_only} isn't supported or invalid
+
+				Supported distros are (debian, archlinux, redhat, alpine, termux)
+				EOM
+				exit 2
+		esac
+
+		# check if the package matches through distro requirement, else abort
+		if [ ! "${guess_distro}" == "${SHPKG_DISTRO}" ]; then
+			echo "Error: package ${PACKAGE_NAME} isn't compatible with your distribution"
+			exit 2
+		fi
+	fi
+
+	# some packages aren't compatible with the architecture
+	# the shpkg_arch_only will facilitate that
+	if [ -n "${shpkg_arch_only}" ]; then
+		case "${shpkg_arch_only}" in
+			x86_64|amd64|x64)
+				guess_arch="amd64"
+				;;
+			i686|i386|x86)
+				guess_arch="i386"
+				;;
+			armv7l|armv8l|armhf)
+				guess_arch="armhf"
+				;;
+			aarch64|arm64)
+				guess_arch="arm64"
+				;;
+			*)
+				cat <<- EOM
+				Error: the architecture ${shpkg_arch_only} isn't supported or invalid
+
+				Supported arches are usually (amd64, i386, armhf, arm64)
+				EOM
+				exit 2
+				;;
+		esac
+
+		# detect real arch
+		case "$(uname -m)" in
+			x86_64|amd64|x64)
+				real_arch="amd64"
+				;;
+			i686|i386|x86)
+				real_arch="i386"
+				;;
+			armv7l|armv8l|armhf)
+				real_arch="armhf"
+				;;
+			aarch64|arm64)
+				arch_arch="arm64"
+				;;
+		esac
+
+		# check if those arches match
+		if [ ! "${guess_arch}" == "${real_arch}" ]; then
+			echo "Error: the package ${PACKAGE_NAME} isn't compatible with your architecture"
+			exit 2
+		fi
+	fi
+
+
+	# prepare install
+	echo "==> Target Package Installation: ${PACKAGE_NAME} (On $(date))"
+	sleep 5
+
+	# install build dependencies if possible
+	if [ -n "${shpkg_build_depends}" ]; then
+		echo "==> Installing build dependencies for: ${PACKAGE_NAME}"
+		${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_build_depends}
+
+		# ask for user if wanted to remove build dependencies
+		read -p "I: Remove build dependencies after install? (Y/n) " yesno
+
+		case "${yesno}" in
+			Y*|y*)
+				DO_REMOVE_BUILDDEPS="y"
+				;;
+			N*|n*)
+				DO_REMOVE_BUILDDEPS="n"
+				;;
+		esac
+	fi
+
+	# install runtime dependencies if possible
+	if [ -n "${shpkg_depends}" ]; then
+		echo "==> Installing runtime dependencies for: ${PACKAGE_NAME}"
+		${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_depends}
+	fi
+
+	# get source code and go to the desired directory!
+	cd "${SHPKG_WHATISDIR}"
+	rm -rf pkgsrc
+
+	# check if the archive was explicitly chosen into zip, by default we use tar
+	if [ "${shpkg_source_archive_zip}" == "true" ]; then
+		OUTPUT_CURL="sources.zip"
+		EXTRACTOR_PARAMS="-d pkgsrc"
+		# check whether to enable verbose extraction
+		if [ "${shpkg_enable_verbose_logging}" == "true" ]; then
+			EXTRACTOR_MODE="unzip"
+		else
+			EXTRACTOR_MODE="unzip -qq"
+		fi
+
+	else
+		OUTPUT_CURL="sources.tar"
+		# check if shpkg_no_strip_tarball is enabled
+		# normally all source tarballs have subdirectories in it
+		if [ ! "${shpkg_no_strip_tarball}" == "true" ]; then
+			EXTRACTOR_PARAMS="-C pkgsrc --strip=1"
+		else
+			EXTRACTOR_PARAMS="-C pkgsrc"
+		fi
+		# check whether to enable verbose extraction
+		if [ "${shpkg_enable_verbose_logging}" == "true" ]; then
+			EXTRACTOR_MODE="tar -xvf"
+		else
+			EXTRACTOR_MODE="tar -xf"
+		fi
+	fi
+
+	# get source code
+	echo "==> Downloading sources..."
+	curl --location --fail "${shpkg_source}" --output "${OUTPUT_CURL}"
+
+	mkdir -p pkgsrc
+
+	# extract sources
+	echo "==> Extracting sources"
+	${EXTRACTOR_MODE} ${OUTPUT_CURL} ${EXTRACTOR_PARAMS}
+
+	# check for prepare() function, usually this is a prehook function before building stuff
+	if declare -t -F prepare; then
+		echo "==> Running pre-installation hooks..."
+		prepare
+	fi
+
+	# not all packages can be compilable or probably independent, check if build() function exists
+	if ! declare -t -F build; then
+		echo "==> Skipping build for: ${PACKAGE_NAME}"
+	else
+		echo "==> Starting build for: ${PACKAGE_NAME}"
+		build
+	fi
+
+	# run finish function
+	if declare -t -F finish; then
+		echo "==> Finishing build and performing post-hook and installation of files..."
+		finish
+	fi
+
+	# remove build dependencies if possible
+	if [ "${DO_REMOVE_BUILDDEPS}" == "y" ]; then
+		echo "==> Removing build dependencies to save space..."
+		${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_build_depends}
+	fi
+
+	echo "==> Success installing package: ${PACKAGE_NAME}"
+	exit 0
+}
+
+shpkg-do-remove(){
+	local PACKAGE_NAME
+	local DO_REMOVE_DEPS
+	local yesno
+
+	check-package-ifexists # checks for package directory metadata
+	check-shpkg-build # checks for SHPKG_BUILD script
+
+	# source the SHPKG_BUILD script
+	source "${SHPKG_WHATISDIR}/SHPKG_BUILD"
+
+	# package name, else fallback
+	if [ -n "${shpkg_name}" ]; then
+		PACKAGE_NAME="${shpkg_name}"
+	else
+		PACKAGE_NAME="${ARG_PACKAGE}"
+	fi
+
+	# check if the build script has uninstall function, else abort
+	if ! declare -t -F remove; then
+		echo "Error: the package ${PACKAGE_NAME} can't be removed and the build script dosen't contain remove() function"
+		exit 2
+	fi
+
+	# ask for confirmation
+	read -p "Do you want to uninstall package: ${PACKAGE_NAME}? (y/N) " yesno
+
+	case "${yesno}" in
+		Y*|y*)
+			echo "==> Uninstalling the package..."
+			remove
+			;;
+		N*|n*)
+			echo "==> Aborting..."
+			exit 0
+			;;
+		*)
+			echo "==> Aborting..."
+			exit 0
+			;;
+	esac
+
+	if [ -n "${shpkg_depends}" ]; then
+		read -p "Do you also want to uninstall dependencies as well? (Y/n) " yesno
+		case "${yesno}" in
+			Y*|y*)
+				DO_REMOVE_DEPS="y"
+				;;
+			N*|n*)
+				DO_REMOVE_DEPS="n"
+				;;
+			*)
+				DO_REMOVE_DEPS="y"
+				;;
+		esac
+	fi
+
+	# remove dependencies if that's so
+	if [ "${DO_REMOVE_DEPS}" == "y" ]; then
+		echo "==> Removing runtime dependencies to save space..."
+		${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}
+	fi
+
+	echo "==> Removal of the package ${PACKAGE_NAME} was successful!"
+	exit 0
+}
+
+shpkg-do-query(){
+	local PACKAGE_NAME
+	local PAGER_METHOD
+
+	check-package-ifexists # checks for package directory metadata
+	check-shpkg-build # checks for SHPKG_BUILD script
+
+	# if PAGER variable isn't specified, use less by default
+	if [ -n "${PAGER}" ]; then
+		export PAGER_METHOD="${PAGER}"
+	else
+		export PAGER_METHOD="less -N"
+	fi
+	
+	# view buildscript
+	${PAGER_METHOD} "${SHPKG_WHATISDIR}/SHPKG_BUILD"
+}
+
+shpkg-do-list(){
+	# check if SHPKG_PKGDIRS exists
+	if [ ! -d "${SHPKG_PKGDIRS}" ]; then
+		cat <<- EOM
+		Error: you don't have any package build scripts information in ${SHPKG_PKGDIRS}
+
+		You can add package build scripts in that directory
+		without this directory, you cannot install/remove packages in this way
+		EOM
+		exit 2
+	fi
+
+	# check if SHPKG_PKGDIRS is empty and inform a user
+	if [ -z "$(ls ${SHPKG_PKGDIRS})" ]; then
+		echo "Info: the package build script information directory is empty, try adding your package build scripts there"
+		exit 0
+	fi
+
+	# list packages, (just use ls stupid, very simple way lol)
+	ls "${SHPKG_PKGDIRS}" -1
+}
+
+
+shpkg-show-help(){
+	cat <<- EOM
+	shpkg: the package manager written in bash! (${SHPKG_VERSION})
+	usage: shpkg [action] package
+
+	Package build scripts are stored in ${SHPKG_PKGDIRS}
+	this directory gathers all the package information and build scripts
+
+	Commands:
+	 install - installs a desired package
+	 uninstall - removes a desired package
+	 query - gathers information within a package
+	 list - lists available packages
+
+	This script dosen't need to run under sudo
+	moreover it still accesses sudo for dependency installation depending on a package
+
+	If you want to create a package, see:
+	https://github.com/shpkg/shpkg
+
+	more information about shpkg, see https://github.com/shpkg/shpkg
+	EOM
+}
+
+# do action
+${SHPKG_ACTION}
+
+# end of script
+
