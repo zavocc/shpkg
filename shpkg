@@ -28,7 +28,7 @@ if [ ! -f "${HOME}/.shpkg-lock" ]; then
 		distro="NixOS"
 	elif [ -f "/usr/bin/dnf" ]; then
 		distro="redhat"
-	elif [ -f "/usr/bin/apk" ]; then
+	elif [ -f "/sbin/apk" ]; then
 		distro="alpine"
 	elif [ "${SHPKG_TERMUXROOT}/usr/bin/apt" ]; then
 		distro="termux"
