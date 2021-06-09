@@ -22,6 +22,11 @@ Current requirements for shpkg are
 Optional dependencies for shpkg
 * unzip (for dealing with zip tarballs)
 
+### ⚠ Word of Warning!!! ⚠
+We have tested `shpkg` in a wide variety of systems like debian, termux, alpine
+
+Some packages may break your system or leave it in a inconsistent state, so before trying `shpkg` it is highly recommended to test it on chroot environment or in a virtual machine
+
 # Installation
 once you have dependencies installed [download](https://raw.githubusercontent.com/shpkg/shpkg/master/shpkg) the `shpkg` script, you can install it by simply placing it into `/usr/local/bin` or `$PREFIX/bin` (for termux)
 
