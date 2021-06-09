@@ -7,6 +7,7 @@ Simple package manager written in bash inspired by makepkg
 currently, the following distributions supported are:
 * Debian and it's derivatives
 * Arch Linux
+* NixOS
 * Redhat based distros (with `dnf` package manager like fedora)
 * Alpine
 * Android (Termux)
