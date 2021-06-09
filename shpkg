@@ -452,7 +452,7 @@ shpkg-do-query(){
 	else
 		export PAGER_METHOD="less -N"
 	fi
-	
+
 	# view buildscript
 	${PAGER_METHOD} "${SHPKG_WHATISDIR}/SHPKG_BUILD"
 }
