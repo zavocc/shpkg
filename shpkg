@@ -88,6 +88,7 @@ case "${SHPKG_DISTRO}" in
 	nixos)
 		SHPKG_INSTALL="nix-env -i"
 		SHPKG_REMOVE="nix-env -e"
+		;;
 	redhat)
 		SHPKG_INSTALL="dnf install --assumeyes"
 		SHPKG_REMOVE="dnf autoremove --assumeyes"
