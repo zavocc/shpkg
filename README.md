@@ -17,10 +17,12 @@ Current requirements for shpkg are
 * bash 4.0+
 * curl
 * less
+* xz-utils
 * sudo (not required for termux)
 
 Optional dependencies for shpkg
 * unzip (for dealing with zip tarballs)
+* tput (for color and bold text support)
 
 ### ⚠ Word of Warning!!! ⚠
 We have tested `shpkg` in a wide variety of systems like debian, termux, alpine
