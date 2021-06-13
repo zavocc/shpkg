@@ -4,7 +4,7 @@
 set -e
 
 # termux's long prefix
-SHPKG_TERMUXROOT="/data/data/com.termux/files/"
+SHPKG_TERMUXROOT="/data/data/com.termux/files/usr"
 
 # shpkg name
 SHPKG_NAME="shpkg"
