@@ -22,7 +22,6 @@ SHPKG_PKGDIRS="${HOME}/.shpkg"
 if command -v tput >/dev/null 2>&1; then
 	RED="$(tput setaf 1)"
 	GREEN="$(tput setaf 2)"
-	WHITE="$(tput setaf 7)"
 	BOLD="$(tput bold)"
 	BOLDONLY="$(tput sgr0)$(tput bold)"
 	NOATTR="$(tput sgr0)"
