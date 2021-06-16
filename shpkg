@@ -19,7 +19,7 @@ SHPKG_MAINTAINER="marcusz"
 SHPKG_PKGDIRS="${HOME}/.shpkg"
 
 # add colors to add glyphs to the script
-if command -v tput >/dev/null 2>&1; then
+if command -v tput 1>/dev/null 2>&1; then
 	RED="$(tput setaf 1)"
 	GREEN="$(tput setaf 2)"
 	BOLD="$(tput bold)"
