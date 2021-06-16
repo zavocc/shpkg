@@ -29,7 +29,7 @@ We have tested `shpkg` in a wide variety of systems like debian, termux, alpine
 
 Some packages may break your system or leave it in a inconsistent state, so before trying `shpkg` it is highly recommended to test it on chroot environment or in a virtual machine
 
-It is also highly recommended not to remove build dependencies or dependencies if it asks you as it does not track dependencies carefully this would make your system unstable and possibly affect the other packages to be uninstalled as well unconditionally so review the build scripts first before doing it
+It is also highly recommended not to remove build dependencies or runtime dependencies if it asks you as it does not track dependencies carefully on what other packages depends on, this would make your system unstable and possibly affect the other packages to be uninstalled as well unconditionally so review the build scripts first before doing it
 
 # Installation
 once you have dependencies installed [download](https://raw.githubusercontent.com/shpkg/shpkg/master/shpkg) the `shpkg` script, you can install it by simply placing it into `/usr/local/bin` or `$PREFIX/bin` (for termux)
@@ -46,10 +46,12 @@ You can try adding sample build scripts by fetching [shpkg/ports](https://github
 git clone https://github.com/shpkg/ports $HOME/.shpkg
 ```
 
-for Termux, it has it's own [separate repo](git clone https://github.com/shpkg/termux-ports) specifically for Termux as it has major differences from linux
+for Termux, it has it's own [separate repo](https://github.com/shpkg/termux-ports) specifically for Termux as it has major differences from linux
 ```
 git clone https://github.com/shpkg/termux-ports $HOME/.shpkg
 ```
+
+---
 
 For package installation, you can do
 ```
