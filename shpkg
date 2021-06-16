@@ -36,18 +36,18 @@ else
 fi
 
 # check distro
-if [ ! -f "${HOME}/.shpkg-lock" ]; then
-	if [ -f "/usr/bin/apt" ]; then
+if [ ! -e "${HOME}/.shpkg-lock" ]; then
+	if [ -e "/usr/bin/apt" ]; then
 		distro="debian"
-	elif [ -f "/usr/bin/pacman" ]; then
+	elif [ -e "/usr/bin/pacman" ]; then
 		distro="archlinux"
-	elif [ -f "/usr/bin/nix-env" ]; then
+	elif [ -e "/usr/bin/nix-env" ]; then
 		distro="nixos"
-	elif [ -f "/usr/bin/dnf" ]; then
+	elif [ -e "/usr/bin/dnf" ]; then
 		distro="redhat"
-	elif [ -f "/sbin/apk" ]; then
+	elif [ -e "/sbin/apk" ]; then
 		distro="alpine"
-	elif [ "${SHPKG_TERMUXROOT}/usr/bin/apt" ]; then
+	elif [ -e "${SHPKG_TERMUXROOT}/usr/bin/apt" ]; then
 		distro="termux"
 	else
 		cat <<- EOF
@@ -157,7 +157,7 @@ SHPKG_WHATISDIR="${SHPKG_PKGDIRS}/${ARG_PACKAGE}"
 }
 
 check-shpkg-build(){
-	if [ ! -f "${SHPKG_WHATISDIR}/SHPKG_BUILD" ]; then
+	if [ ! -e "${SHPKG_WHATISDIR}/SHPKG_BUILD" ]; then
 		cat <<- EOM
 		${BRED:-${RED}${BOLD}}Error: ${BWHITE:-${BOLDONLY}}you do not have SHPKG_BUILD file in the package directory
 
