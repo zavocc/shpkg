@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shpkg - the package manager written in bash, specifically for linux
 
-set -e
+set -euo pipefail # Bash strict mode
 
 # termux's long prefix
 SHPKG_TERMUXROOT="/data/data/com.termux/files/usr"
@@ -117,8 +117,8 @@ case "${SHPKG_DISTRO}" in
 		;;
 esac
 
-ARG_ACTION="$1"
-ARG_PACKAGE="$2"
+ARG_ACTION="${1:-}"
+ARG_PACKAGE="${2:-}"
 
 # parse arguments
 case "${ARG_ACTION}" in
