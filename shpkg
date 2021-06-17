@@ -142,7 +142,7 @@ case "${ARG_ACTION}" in
 esac
 
 check-package-ifexists(){
-	if [ -z "${ARG_PACKAGE}" ]; then
+	if [ -z "${ARG_PACKAGE:-}" ]; then
 		echo "${BRED:-${RED}${BOLD}}Error: ${BWHITE:-${BOLDONLY}}please query a package!${NOATTR}"
 		exit 2
 	fi
@@ -189,21 +189,21 @@ shpkg-do-install(){
 	source "${SHPKG_WHATISDIR}/SHPKG_BUILD"
 
 	# package name, else fallback
-	if [ -n "${shpkg_name}" ]; then
+	if [ -n "${shpkg_name:-}" ]; then
 		PACKAGE_NAME="${shpkg_name}"
 	else
 		PACKAGE_NAME="${ARG_PACKAGE}"
 	fi
 
 	# check if shpkg_source is specified
-	if [ -z "${shpkg_source}" ]; then
+	if [ -z "${shpkg_source:-}" ]; then
 		echo "${BRED:-${RED}${BOLD}}Error: ${BWHITE:-${BOLDONLY}}please specify a source code tarball url of a package!${NOATTR}"
 		exit 2
 	fi
 
 	# if shpkg_distro_only value is specified, guess and check
 	# this allows for package to install in a specific distro only
-	if [ -n "${shpkg_distro_only}" ]; then
+	if [ -n "${shpkg_distro_only:-}" ]; then
 		case "${shpkg_distro_only}" in
 			debian|ubuntu|kali|devuan)
 				guess_distro="debian"
@@ -241,7 +241,7 @@ shpkg-do-install(){
 
 	# some packages aren't compatible with the architecture
 	# the shpkg_arch_only will facilitate that
-	if [ -n "${shpkg_arch_only}" ]; then
+	if [ -n "${shpkg_arch_only:-}" ]; then
 		case "${shpkg_arch_only}" in
 			x86_64|amd64|x64)
 				guess_arch="amd64"
@@ -294,7 +294,7 @@ shpkg-do-install(){
 	sleep 5
 
 	# install build dependencies if possible
-	if [ -n "${shpkg_build_depends}" ]; then
+	if [ -n "${shpkg_build_depends:-}" ]; then
 		echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Installing build dependencies for: ${PACKAGE_NAME}${NOATTR}"
 		eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_build_depends}"
 
@@ -312,7 +312,7 @@ shpkg-do-install(){
 	fi
 
 	# install runtime dependencies if possible
-	if [ -n "${shpkg_depends}" ]; then
+	if [ -n "${shpkg_depends:-}" ]; then
 		echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Installing runtime dependencies for: ${PACKAGE_NAME}${NOATTR}"
 		eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_depends}"
 	fi
@@ -322,11 +322,11 @@ shpkg-do-install(){
 	rm -rf pkgsrc
 
 	# check if the archive was explicitly chosen into zip, by default we use tar
-	if [ "${shpkg_source_archive_zip}" == "true" ]; then
+	if [ "${shpkg_source_archive_zip:-false}" == "true" ]; then
 		OUTPUT_CURL="sources.zip"
 		EXTRACTOR_PARAMS="-d pkgsrc"
 		# check whether to enable verbose extraction
-		if [ "${shpkg_enable_verbose_logging}" == "true" ]; then
+		if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
 			EXTRACTOR_MODE="unzip"
 		else
 			EXTRACTOR_MODE="unzip -qq"
@@ -336,13 +336,13 @@ shpkg-do-install(){
 		OUTPUT_CURL="sources.tar"
 		# check if shpkg_no_strip_tarball is enabled
 		# normally all source tarballs have subdirectories in it
-		if [ ! "${shpkg_no_strip_tarball}" == "true" ]; then
+		if [ ! "${shpkg_no_strip_tarball:-false}" == "true" ]; then
 			EXTRACTOR_PARAMS="-C pkgsrc --strip=1"
 		else
 			EXTRACTOR_PARAMS="-C pkgsrc"
 		fi
 		# check whether to enable verbose extraction
-		if [ "${shpkg_enable_verbose_logging}" == "true" ]; then
+		if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
 			EXTRACTOR_MODE="tar -xvf"
 		else
 			EXTRACTOR_MODE="tar -xf"
@@ -401,7 +401,7 @@ shpkg-do-remove(){
 	source "${SHPKG_WHATISDIR}/SHPKG_BUILD"
 
 	# package name, else fallback
-	if [ -n "${shpkg_name}" ]; then
+	if [ -n "${shpkg_name:-}" ]; then
 		PACKAGE_NAME="${shpkg_name}"
 	else
 		PACKAGE_NAME="${ARG_PACKAGE}"
@@ -431,7 +431,7 @@ shpkg-do-remove(){
 			;;
 	esac
 
-	if [ -n "${shpkg_depends}" ]; then
+	if [ -n "${shpkg_depends:-}" ]; then
 		read -r -p "${BWHITE:-${BOLD}}Do you also want to uninstall dependencies as well? (Y/n)${NOATTR} " yesno
 		case "${yesno}" in
 			Y*|y*)
@@ -464,7 +464,7 @@ shpkg-do-query(){
 	check-shpkg-build # checks for SHPKG_BUILD script
 
 	# if PAGER variable isn't specified, use less by default
-	if [ -n "${PAGER}" ]; then
+	if [ -n "${PAGER:-}" ]; then
 		export PAGER_METHOD="${PAGER}"
 	else
 		export PAGER_METHOD="less -N"
