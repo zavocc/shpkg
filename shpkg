@@ -380,7 +380,7 @@ shpkg-do-install(){
 	fi
 
 	# remove build dependencies if possible
-	if [ "${DO_REMOVE_BUILDDEPS}" == "y" ]; then
+	if [ "${DO_REMOVE_BUILDDEPS:-n}" == "y" ]; then
 		echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Removing build dependencies to save space...${NOATTR}"
 		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_build_depends}"
 	fi
@@ -447,7 +447,7 @@ shpkg-do-remove(){
 	fi
 
 	# remove dependencies if that's so
-	if [ "${DO_REMOVE_DEPS}" == "y" ]; then
+	if [ "${DO_REMOVE_DEPS:-n}" == "y" ]; then
 		echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Removing runtime dependencies to save space...${NOATTR}"
 		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}"
 	fi
