@@ -69,7 +69,7 @@ echo "${distro}" > "${HOME}/.shpkg-lock"
 fi
 
 # set distro
-SHPKG_DISTRO="$(cat ${HOME}/.shpkg-lock)"
+SHPKG_DISTRO="$(cat "${HOME}/.shpkg-lock")"
 
 # check root
 case "${SHPKG_DISTRO}" in
@@ -296,7 +296,7 @@ shpkg-do-install(){
 	# install build dependencies if possible
 	if [ -n "${shpkg_build_depends}" ]; then
 		echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Installing build dependencies for: ${PACKAGE_NAME}${NOATTR}"
-		${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_build_depends}
+		eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_build_depends}"
 
 		# ask for user if wanted to remove build dependencies
 		read -p "${BWHITE:-${BOLD}}I: Remove build dependencies after install? (Y/n)${NOATTR} " yesno
@@ -314,7 +314,7 @@ shpkg-do-install(){
 	# install runtime dependencies if possible
 	if [ -n "${shpkg_depends}" ]; then
 		echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Installing runtime dependencies for: ${PACKAGE_NAME}${NOATTR}"
-		${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_depends}
+		eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_depends}"
 	fi
 
 	# get source code and go to the desired directory!
@@ -357,7 +357,7 @@ shpkg-do-install(){
 
 	# extract sources
 	echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Extracting sources${NOATTR}"
-	${EXTRACTOR_MODE} ${OUTPUT_CURL} ${EXTRACTOR_PARAMS}
+	eval "${EXTRACTOR_MODE} ${OUTPUT_CURL} ${EXTRACTOR_PARAMS}"
 
 	# check for prepare() function, usually this is a prehook function before building stuff
 	if declare -t -F prepare; then
@@ -382,7 +382,7 @@ shpkg-do-install(){
 	# remove build dependencies if possible
 	if [ "${DO_REMOVE_BUILDDEPS}" == "y" ]; then
 		echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Removing build dependencies to save space...${NOATTR}"
-		${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_build_depends}
+		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_build_depends}"
 	fi
 
 	echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Success installing package: ${PACKAGE_NAME}${NOATTR}"
@@ -449,7 +449,7 @@ shpkg-do-remove(){
 	# remove dependencies if that's so
 	if [ "${DO_REMOVE_DEPS}" == "y" ]; then
 		echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Removing runtime dependencies to save space...${NOATTR}"
-		${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}
+		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}"
 	fi
 
 	echo "${BGREEN:-${GREEN}${BOLD}}==> ${BWHITE:-${BOLDONLY}}Removal of the package ${PACKAGE_NAME} was successful!${NOATTR}"
@@ -487,7 +487,7 @@ shpkg-do-list(){
 	fi
 
 	# check if SHPKG_PKGDIRS is empty and inform a user
-	if [ -z "$(ls ${SHPKG_PKGDIRS})" ]; then
+	if [ -z "$(ls "${SHPKG_PKGDIRS}")" ]; then
 		echo "${BWHITE:-${BOLD}}Info: the package build script information directory is empty, try adding your package build scripts there${NOATTR}"
 		exit 0
 	fi
