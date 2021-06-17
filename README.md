@@ -71,7 +71,7 @@ You can simply uninstall package by doing
 shpkg uninstall <package>
 ```
 
-**Warning: check the buildscript dependency information before trying to uninstall runtime dependencies, `shpkg` won't track dependencies that other packages depends on, this would remove some of the packages unconditionally**
+**Warning: if it ask you to remove runtime dependencies as well, check the buildscript dependency information first before trying to uninstall runtime dependencies, `shpkg` won't track dependencies that other packages depends on, this would remove some of the packages unconditionally**
 
 Depending on a package's build script, sometimes there's no `remove()` function and you won't be able to uninstall it properly, so be aware of that
 
