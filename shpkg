@@ -299,7 +299,7 @@ shpkg-do-install(){
 		eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_build_depends}"
 
 		# ask for user if wanted to remove build dependencies
-		read -p "${BWHITE:-${BOLD}}I: Remove build dependencies after install? (Y/n)${NOATTR} " yesno
+		read -r -p "${BWHITE:-${BOLD}}I: Remove build dependencies after install? (Y/n)${NOATTR} " yesno
 
 		case "${yesno}" in
 			Y*|y*)
@@ -414,7 +414,7 @@ shpkg-do-remove(){
 	fi
 
 	# ask for confirmation
-	read -p "${BWHITE:-${BOLD}}Do you want to uninstall package: ${PACKAGE_NAME}? (y/N)${NOATTR} " yesno
+	read -r -p "${BWHITE:-${BOLD}}Do you want to uninstall package: ${PACKAGE_NAME}? (y/N)${NOATTR} " yesno
 
 	case "${yesno}" in
 		Y*|y*)
@@ -432,7 +432,7 @@ shpkg-do-remove(){
 	esac
 
 	if [ -n "${shpkg_depends}" ]; then
-		read -p "${BWHITE:-${BOLD}}Do you also want to uninstall dependencies as well? (Y/n)${NOATTR} " yesno
+		read -r -p "${BWHITE:-${BOLD}}Do you also want to uninstall dependencies as well? (Y/n)${NOATTR} " yesno
 		case "${yesno}" in
 			Y*|y*)
 				DO_REMOVE_DEPS="y"
