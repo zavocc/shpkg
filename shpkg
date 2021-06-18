@@ -25,7 +25,6 @@ if command -v tput 1>/dev/null 2>&1; then
 	BRED="${BOLD}$(tput setaf 1)"
 	BGREEN="${BOLD}$(tput setaf 2)"
 else
-	## Use printf to remove unnecessary $''
 	BRED=$'\e[1;31m'
 	BGREEN=$'\e[1;32m'
 	BOLD=$'\e[1;37m'
