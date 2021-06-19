@@ -10,7 +10,7 @@ SHPKG_TERMUXROOT="/data/data/com.termux/files/usr"
 SHPKG_NAME="shpkg"
 
 # shpkg version
-SHPKG_VERSION="1.0.1"
+SHPKG_VERSION="1.1.0"
 
 # shpkg maintainer
 SHPKG_MAINTAINER="marcusz"
@@ -25,10 +25,10 @@ if command -v tput 1>/dev/null 2>&1; then
 	BRED="${BOLD}$(tput setaf 1)"
 	BGREEN="${BOLD}$(tput setaf 2)"
 else
+	NOATTR=$'\e[0m'
+	BOLD=$'\e[1;37m'
 	BRED=$'\e[1;31m'
 	BGREEN=$'\e[1;32m'
-	BOLD=$'\e[1;37m'
-	NOATTR=$'\e[0m'
 fi
 
 # check distro
