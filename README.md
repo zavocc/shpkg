@@ -22,7 +22,6 @@ Current requirements for shpkg are
 
 Optional dependencies for shpkg
 * unzip (for dealing with zip tarballs)
-* tput (for color and bold text support)
 
 ### ⚠ Word of Warning!!! ⚠
 We have tested `shpkg` in a wide variety of systems like debian, termux, alpine
