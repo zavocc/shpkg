@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shpkg - the package manager written in bash, specifically for linux
 
-set -e
+set -euo pipefail # Bash strict mode
 
 # termux's long prefix
 SHPKG_TERMUXROOT="/data/data/com.termux/files/usr"
@@ -19,37 +19,35 @@ SHPKG_MAINTAINER="marcusz"
 SHPKG_PKGDIRS="${HOME}/.shpkg"
 
 # add colors to add glyphs to the script
-if command -v tput >/dev/null 2>&1; then
-	RED="$(tput setaf 1)"
-	GREEN="$(tput setaf 2)"
-	BOLD="$(tput bold)"
-	BOLDONLY="$(tput sgr0)$(tput bold)"
+if command -v tput 1>/dev/null 2>&1; then
 	NOATTR="$(tput sgr0)"
+	BOLD="${NOATTR}$(tput bold)"
+	BRED="${BOLD}$(tput setaf 1)"
+	BGREEN="${BOLD}$(tput setaf 2)"
 else
-	RED=""
-	GREEN=""
-	BOLD=""
-	BOLDONLY=""
-	NOATTR=""
+	BRED=$'\e[1;31m'
+	BGREEN=$'\e[1;32m'
+	BOLD=$'\e[1;37m'
+	NOATTR=$'\e[0m'
 fi
 
 # check distro
-if [ ! -f "${HOME}/.shpkg-lock" ]; then
-	if [ -f "/usr/bin/apt" ]; then
+if [ ! -e "${HOME}/.shpkg-lock" ]; then
+	if [ -e "/usr/bin/apt" ]; then
 		distro="debian"
-	elif [ -f "/usr/bin/pacman" ]; then
+	elif [ -e "/usr/bin/pacman" ]; then
 		distro="archlinux"
-	elif [ -f "/usr/bin/nix-env" ]; then
+	elif [ -e "/usr/bin/nix-env" ]; then
 		distro="nixos"
-	elif [ -f "/usr/bin/dnf" ]; then
+	elif [ -e "/usr/bin/dnf" ]; then
 		distro="redhat"
-	elif [ -f "/sbin/apk" ]; then
+	elif [ -e "/sbin/apk" ]; then
 		distro="alpine"
-	elif [ "${SHPKG_TERMUXROOT}/usr/bin/apt" ]; then
+	elif [ -e "${SHPKG_TERMUXROOT}/bin/apt" ]; then
 		distro="termux"
 	else
 		cat <<- EOF
-		${RED}${BOLD}Error: ${BOLDONLY}this utility is not compatible with your operating system${NOATTR}
+		${BRED}Error: ${BOLD}this utility is not compatible with your operating system${NOATTR}
 
 		Supported ones are:
 		 - Debian
@@ -67,7 +65,7 @@ echo "${distro}" > "${HOME}/.shpkg-lock"
 fi
 
 # set distro
-SHPKG_DISTRO="$(cat ${HOME}/.shpkg-lock)"
+SHPKG_DISTRO="$(cat "${HOME}/.shpkg-lock")"
 
 # check root
 case "${SHPKG_DISTRO}" in
@@ -117,8 +115,8 @@ case "${SHPKG_DISTRO}" in
 		;;
 esac
 
-ARG_ACTION="$1"
-ARG_PACKAGE="$2"
+ARG_ACTION="${1:-}"
+ARG_PACKAGE="${2:-}"
 
 # parse arguments
 case "${ARG_ACTION}" in
@@ -140,14 +138,14 @@ case "${ARG_ACTION}" in
 esac
 
 check-package-ifexists(){
-	if [ -z "${ARG_PACKAGE}" ]; then
-		echo "${RED}${BOLD}Error: ${BOLDONLY}please query a package!${NOATTR}"
+	if [ -z "${ARG_PACKAGE:-}" ]; then
+		echo "${BRED}Error: ${BOLD}please query a package!${NOATTR}"
 		exit 2
 	fi
 
 	# now check if packages directory exists
 	if [ ! -d "${SHPKG_PKGDIRS}/${ARG_PACKAGE}" ]; then
-		echo "${RED}${BOLD}Error: ${BOLDONLY}package dosen't exists in: ${SHPKG_PKGDIRS}${NOATTR}"
+		echo "${BRED}Error: ${BOLD}package dosen't exists in: ${SHPKG_PKGDIRS}${NOATTR}"
 		exit 2
 	fi
 
@@ -155,9 +153,9 @@ SHPKG_WHATISDIR="${SHPKG_PKGDIRS}/${ARG_PACKAGE}"
 }
 
 check-shpkg-build(){
-	if [ ! -f "${SHPKG_WHATISDIR}/SHPKG_BUILD" ]; then
+	if [ ! -e "${SHPKG_WHATISDIR}/SHPKG_BUILD" ]; then
 		cat <<- EOM
-		${RED}${BOLD}Error: ${BOLDONLY}you do not have SHPKG_BUILD file in the package directory
+		${BRED}Error: ${BOLD}you do not have SHPKG_BUILD file in the package directory
 
 		See https://github.com/shpkg/shpkg to learn more how to make one${NOATTR}
 		EOM
@@ -187,21 +185,21 @@ shpkg-do-install(){
 	source "${SHPKG_WHATISDIR}/SHPKG_BUILD"
 
 	# package name, else fallback
-	if [ -n "${shpkg_name}" ]; then
+	if [ -n "${shpkg_name:-}" ]; then
 		PACKAGE_NAME="${shpkg_name}"
 	else
 		PACKAGE_NAME="${ARG_PACKAGE}"
 	fi
 
 	# check if shpkg_source is specified
-	if [ -z "${shpkg_source}" ]; then
-		echo "${RED}${BOLD}Error: ${BOLDONLY}please specify a source code tarball url of a package!${NOATTR}"
+	if [ -z "${shpkg_source:-}" ]; then
+		echo "${BRED}Error: ${BOLD}please specify a source code tarball url of a package!${NOATTR}"
 		exit 2
 	fi
 
 	# if shpkg_distro_only value is specified, guess and check
 	# this allows for package to install in a specific distro only
-	if [ -n "${shpkg_distro_only}" ]; then
+	if [ -n "${shpkg_distro_only:-}" ]; then
 		case "${shpkg_distro_only}" in
 			debian|ubuntu|kali|devuan)
 				guess_distro="debian"
@@ -223,7 +221,7 @@ shpkg-do-install(){
 				;;
 			*)
 				cat <<- EOM
-				${RED}${BOLD}Error: ${BOLDONLY}the distro ${shpkg_distro_only} isn't supported or invalid
+				${BRED}Error: ${BOLD}the distro ${shpkg_distro_only} isn't supported or invalid
 
 				Supported distros are (debian, archlinux, nixos, redhat, alpine, termux)${NOATTR}
 				EOM
@@ -232,14 +230,14 @@ shpkg-do-install(){
 
 		# check if the package matches through distro requirement, else abort
 		if [ ! "${guess_distro}" == "${SHPKG_DISTRO}" ]; then
-			echo "${RED}${BOLD}Error: ${BOLDONLY}package ${PACKAGE_NAME} isn't compatible with your distribution${NOATTR}"
+			echo "${BRED}Error: ${BOLD}package ${PACKAGE_NAME} isn't compatible with your distribution${NOATTR}"
 			exit 2
 		fi
 	fi
 
 	# some packages aren't compatible with the architecture
 	# the shpkg_arch_only will facilitate that
-	if [ -n "${shpkg_arch_only}" ]; then
+	if [ -n "${shpkg_arch_only:-}" ]; then
 		case "${shpkg_arch_only}" in
 			x86_64|amd64|x64)
 				guess_arch="amd64"
@@ -255,7 +253,7 @@ shpkg-do-install(){
 				;;
 			*)
 				cat <<- EOM
-				${RED}${BOLD}Error: ${BOLDONLY}the architecture ${shpkg_arch_only} isn't supported or invalid
+				${BRED}Error: ${BOLD}the architecture ${shpkg_arch_only} isn't supported or invalid
 
 				Supported arches are usually (amd64, i386, armhf, arm64)${NOATTR}
 				EOM
@@ -281,23 +279,23 @@ shpkg-do-install(){
 
 		# check if those arches match
 		if [ ! "${guess_arch}" == "${real_arch}" ]; then
-			echo "${RED}${BOLD}Error: the package ${PACKAGE_NAME} isn't compatible with your architecture${NOATTR}"
+			echo "${BRED}Error: the package ${PACKAGE_NAME} isn't compatible with your architecture${NOATTR}"
 			exit 2
 		fi
 	fi
 
 
 	# prepare install
-	echo "${GREEN}${BOLD}==> ${BOLDONLY}Target Package Installation: ${PACKAGE_NAME} (On $(date))${NOATTR}"
+	echo "${BGREEN}==> ${BOLD}Target Package Installation: ${PACKAGE_NAME} (On $(date))${NOATTR}"
 	sleep 5
 
 	# install build dependencies if possible
-	if [ -n "${shpkg_build_depends}" ]; then
-		echo "${GREEN}${BOLD}==> ${BOLDONLY}Installing build dependencies for: ${PACKAGE_NAME}${NOATTR}"
-		${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_build_depends}
+	if [ -n "${shpkg_build_depends:-}" ]; then
+		echo "${BGREEN}==> ${BOLD}Installing build dependencies for: ${PACKAGE_NAME}${NOATTR}"
+		eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_build_depends}"
 
 		# ask for user if wanted to remove build dependencies
-		read -p "${BOLD}I: Remove build dependencies after install? (Y/n)${NOATTR} " yesno
+		read -r -p "${BOLD}I: Remove build dependencies after install? (Y/n)${NOATTR} " yesno
 
 		case "${yesno}" in
 			Y*|y*)
@@ -310,9 +308,9 @@ shpkg-do-install(){
 	fi
 
 	# install runtime dependencies if possible
-	if [ -n "${shpkg_depends}" ]; then
-		echo "${GREEN}${BOLD}==> ${BOLDONLY}Installing runtime dependencies for: ${PACKAGE_NAME}${NOATTR}"
-		${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_depends}
+	if [ -n "${shpkg_depends:-}" ]; then
+		echo "${BGREEN}==> ${BOLD}Installing runtime dependencies for: ${PACKAGE_NAME}${NOATTR}"
+		eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_depends}"
 	fi
 
 	# get source code and go to the desired directory!
@@ -320,11 +318,11 @@ shpkg-do-install(){
 	rm -rf pkgsrc
 
 	# check if the archive was explicitly chosen into zip, by default we use tar
-	if [ "${shpkg_source_archive_zip}" == "true" ]; then
+	if [ "${shpkg_source_archive_zip:-false}" == "true" ]; then
 		OUTPUT_CURL="sources.zip"
 		EXTRACTOR_PARAMS="-d pkgsrc"
 		# check whether to enable verbose extraction
-		if [ "${shpkg_enable_verbose_logging}" == "true" ]; then
+		if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
 			EXTRACTOR_MODE="unzip"
 		else
 			EXTRACTOR_MODE="unzip -qq"
@@ -334,13 +332,13 @@ shpkg-do-install(){
 		OUTPUT_CURL="sources.tar"
 		# check if shpkg_no_strip_tarball is enabled
 		# normally all source tarballs have subdirectories in it
-		if [ ! "${shpkg_no_strip_tarball}" == "true" ]; then
+		if [ ! "${shpkg_no_strip_tarball:-false}" == "true" ]; then
 			EXTRACTOR_PARAMS="-C pkgsrc --strip=1"
 		else
 			EXTRACTOR_PARAMS="-C pkgsrc"
 		fi
 		# check whether to enable verbose extraction
-		if [ "${shpkg_enable_verbose_logging}" == "true" ]; then
+		if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
 			EXTRACTOR_MODE="tar -xvf"
 		else
 			EXTRACTOR_MODE="tar -xf"
@@ -348,42 +346,42 @@ shpkg-do-install(){
 	fi
 
 	# get source code
-	echo "${GREEN}${BOLD}==> ${BOLDONLY}Downloading sources...${NOATTR}"
+	echo "${BGREEN}==> ${BOLD}Downloading sources...${NOATTR}"
 	curl --location --fail "${shpkg_source}" --output "${OUTPUT_CURL}"
 
 	mkdir -p pkgsrc
 
 	# extract sources
-	echo "${GREEN}${BOLD}==> ${BOLDONLY}Extracting sources${NOATTR}"
-	${EXTRACTOR_MODE} ${OUTPUT_CURL} ${EXTRACTOR_PARAMS}
+	echo "${BGREEN}==> ${BOLD}Extracting sources${NOATTR}"
+	eval "${EXTRACTOR_MODE} ${OUTPUT_CURL} ${EXTRACTOR_PARAMS}"
 
 	# check for prepare() function, usually this is a prehook function before building stuff
 	if declare -t -F prepare; then
-		echo "${GREEN}${BOLD}==> ${BOLDONLY}Running pre-installation hooks...${NOATTR}"
+		echo "${BGREEN}==> ${BOLD}Running pre-installation hooks...${NOATTR}"
 		prepare
 	fi
 
 	# not all packages can be compilable or probably independent, check if build() function exists
 	if ! declare -t -F build; then
-		echo "${GREEN}${BOLD}==> ${BOLDONLY}Skipping build for: ${PACKAGE_NAME}${NOATTR}"
+		echo "${BGREEN}==> ${BOLD}Skipping build for: ${PACKAGE_NAME}${NOATTR}"
 	else
-		echo "${GREEN}${BOLD}==> ${BOLDONLY}Starting build for: ${PACKAGE_NAME}${NOATTR}"
+		echo "${BGREEN}==> ${BOLD}Starting build for: ${PACKAGE_NAME}${NOATTR}"
 		build
 	fi
 
 	# run finish function
 	if declare -t -F finish; then
-		echo "${GREEN}${BOLD}==> ${BOLDONLY}Finishing build and performing post-hook and installation of the package...${NOATTR}"
+		echo "${BGREEN}==> ${BOLD}Finishing build and performing post-hook and installation of the package...${NOATTR}"
 		finish
 	fi
 
 	# remove build dependencies if possible
-	if [ "${DO_REMOVE_BUILDDEPS}" == "y" ]; then
-		echo "${GREEN}${BOLD}==> ${BOLDONLY}Removing build dependencies to save space...${NOATTR}"
-		${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_build_depends}
+	if [ "${DO_REMOVE_BUILDDEPS:-n}" == "y" ]; then
+		echo "${BGREEN}==> ${BOLD}Removing build dependencies to save space...${NOATTR}"
+		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_build_depends}"
 	fi
 
-	echo "${GREEN}${BOLD}==> ${BOLDONLY}Success installing package: ${PACKAGE_NAME}${NOATTR}"
+	echo "${BGREEN}==> ${BOLD}Success installing package: ${PACKAGE_NAME}${NOATTR}"
 	exit 0
 }
 
@@ -399,7 +397,7 @@ shpkg-do-remove(){
 	source "${SHPKG_WHATISDIR}/SHPKG_BUILD"
 
 	# package name, else fallback
-	if [ -n "${shpkg_name}" ]; then
+	if [ -n "${shpkg_name:-}" ]; then
 		PACKAGE_NAME="${shpkg_name}"
 	else
 		PACKAGE_NAME="${ARG_PACKAGE}"
@@ -407,30 +405,30 @@ shpkg-do-remove(){
 
 	# check if the build script has uninstall function, else abort
 	if ! declare -t -F remove; then
-		echo "${RED}${BOLD}Error: ${BOLDONLY}the package ${PACKAGE_NAME} can't be removed and the build script dosen't contain remove() function${NOATTR}"
+		echo "${BRED}Error: ${BOLD}the package ${PACKAGE_NAME} can't be removed and the build script dosen't contain remove() function${NOATTR}"
 		exit 2
 	fi
 
 	# ask for confirmation
-	read -p "${BOLD}Do you want to uninstall package: ${PACKAGE_NAME}? (y/N)${NOATTR} " yesno
+	read -r -p "${BOLD}Do you want to uninstall package: ${PACKAGE_NAME}? (y/N)${NOATTR} " yesno
 
 	case "${yesno}" in
 		Y*|y*)
-			echo "${GREEN}${BOLD}==> ${BOLDONLY}Uninstalling the package...${NOATTR}"
+			echo "${BGREEN}==> ${BOLD}Uninstalling the package...${NOATTR}"
 			remove
 			;;
 		N*|n*)
-			echo "${GREEN}${BOLD}==> ${BOLDONLY}Aborting...${NOATTR}"
+			echo "${BGREEN}==> ${BOLD}Aborting...${NOATTR}"
 			exit 0
 			;;
 		*)
-			echo "${GREEN}${BOLD}==> ${BOLDONLY}Aborting...${NOATTR}"
+			echo "${BGREEN}==> ${BOLD}Aborting...${NOATTR}"
 			exit 0
 			;;
 	esac
 
-	if [ -n "${shpkg_depends}" ]; then
-		read -p "${BOLD}Do you also want to uninstall dependencies as well? (Y/n)${NOATTR} " yesno
+	if [ -n "${shpkg_depends:-}" ]; then
+		read -r -p "${BOLD}Do you also want to uninstall dependencies as well? (Y/n)${NOATTR} " yesno
 		case "${yesno}" in
 			Y*|y*)
 				DO_REMOVE_DEPS="y"
@@ -445,12 +443,12 @@ shpkg-do-remove(){
 	fi
 
 	# remove dependencies if that's so
-	if [ "${DO_REMOVE_DEPS}" == "y" ]; then
-		echo "${GREEN}${BOLD}==> ${BOLDONLY}Removing runtime dependencies to save space...${NOATTR}"
-		${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}
+	if [ "${DO_REMOVE_DEPS:-n}" == "y" ]; then
+		echo "${BGREEN}==> ${BOLD}Removing runtime dependencies to save space...${NOATTR}"
+		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}"
 	fi
 
-	echo "${GREEN}${BOLD}==> ${BOLDONLY}Removal of the package ${PACKAGE_NAME} was successful!${NOATTR}"
+	echo "${BGREEN}==> ${BOLD}Removal of the package ${PACKAGE_NAME} was successful!${NOATTR}"
 	exit 0
 }
 
@@ -462,7 +460,7 @@ shpkg-do-query(){
 	check-shpkg-build # checks for SHPKG_BUILD script
 
 	# if PAGER variable isn't specified, use less by default
-	if [ -n "${PAGER}" ]; then
+	if [ -n "${PAGER:-}" ]; then
 		export PAGER_METHOD="${PAGER}"
 	else
 		export PAGER_METHOD="less -N"
@@ -476,7 +474,7 @@ shpkg-do-list(){
 	# check if SHPKG_PKGDIRS exists
 	if [ ! -d "${SHPKG_PKGDIRS}" ]; then
 		cat <<- EOM
-		${RED}${BOLD}Error: ${BOLDONLY}you don't have any package build script information in ${SHPKG_PKGDIRS}
+		${BRED}Error: ${BOLD}you don't have any package build script information in ${SHPKG_PKGDIRS}
 
 		You can add package build scripts in that directory
 		without this directory, you cannot install/remove packages in this way${NOATTR}
@@ -485,7 +483,7 @@ shpkg-do-list(){
 	fi
 
 	# check if SHPKG_PKGDIRS is empty and inform a user
-	if [ -z "$(ls ${SHPKG_PKGDIRS})" ]; then
+	if [ -z "$(ls "${SHPKG_PKGDIRS}")" ]; then
 		echo "${BOLD}Info: the package build script information directory is empty, try adding your package build scripts there${NOATTR}"
 		exit 0
 	fi
