@@ -43,7 +43,7 @@ if [ ! -e "${HOME}/.shpkg-lock" ]; then
 		distro="redhat"
 	elif [ -e "/sbin/apk" ]; then
 		distro="alpine"
-	elif [ -e "${SHPKG_TERMUXROOT}/usr/bin/apt" ]; then
+	elif [ -e "${SHPKG_TERMUXROOT}/bin/apt" ]; then
 		distro="termux"
 	else
 		cat <<- EOF
