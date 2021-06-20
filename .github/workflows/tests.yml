@@ -13,6 +13,8 @@ jobs:
   testing:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    env:
+      TERM: "xterm-256color"
     steps:
       - uses: actions/checkout@v2
       - name: Clone ports repository
