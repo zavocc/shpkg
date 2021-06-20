@@ -39,4 +39,4 @@ jobs:
 
       - name: Uninstallation Tests
 				run: |
-					yes | ./shpkg uninstall hello-world
+          yes | ./shpkg uninstall hello-world
