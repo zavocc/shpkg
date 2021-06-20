@@ -35,8 +35,8 @@ jobs:
           if ! shpkg-hello >/dev/null 2>&1; then
             echo "Installation isn't successful!"
             exit 2
-					fi
+          fi
 
-			- name: Uninstallation Tests
+      - name: Uninstallation Tests
 				run: |
 					yes | ./shpkg uninstall hello-world
