@@ -23,7 +23,7 @@ jobs:
 
       - name: Installation Tests
         run: |
-          ./shpkg install hello-world
+          bash -x ./shpkg install hello-world
           
       - name: Execution Tests
         run: |
