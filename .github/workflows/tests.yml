@@ -37,6 +37,8 @@ jobs:
             echo "Installation isn't successful!"
             exit 2
           fi
+          
+          shpkg-hello
       
       - name: Uninstallation Tests
         run: |
