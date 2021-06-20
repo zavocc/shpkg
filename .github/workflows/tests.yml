@@ -36,7 +36,7 @@ jobs:
             echo "Installation isn't successful!"
             exit 2
           fi
-
+      
       - name: Uninstallation Tests
-				run: |
+        run: |
           yes | ./shpkg uninstall hello-world
