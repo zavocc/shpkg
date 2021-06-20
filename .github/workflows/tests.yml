@@ -1,6 +1,5 @@
 name: Automated Tests
 
-
 on:
   push:
     branches: [ master ]
@@ -23,7 +22,7 @@ jobs:
 
       - name: Installation Tests
         run: |
-          bash -x ./shpkg install hello-world
+          yes | ./shpkg install hello-world
           
       - name: Execution Tests
         run: |
