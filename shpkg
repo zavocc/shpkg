@@ -315,45 +315,71 @@ shpkg-do-install(){
 
 	# get source code and go to the desired directory!
 	cd "${SHPKG_WHATISDIR}"
-	rm -rf pkgsrc
+	rm -rf "${SRCDIR}"
 
-	# check if the archive was explicitly chosen into zip, by default we use tar
-	if [ "${shpkg_source_archive_zip:-false}" == "true" ]; then
-		OUTPUT_CURL="sources.zip"
-		EXTRACTOR_PARAMS="-d pkgsrc"
-		# check whether to enable verbose extraction
-		if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
-			EXTRACTOR_MODE="unzip"
+	# first, check if shpkg_source_use_git was given
+	if [ "${shpkg_src_use_git:-false}" == "true" ]; then
+		# check if shpkg_git_branch was specified, otherwise we could use the master branch
+		if [ -n "${shpkg_git_branch:-}" ]; then
+			GIT_BRANCH="-b ${shpkg_git_branch}"
 		else
-			EXTRACTOR_MODE="unzip -qq"
+			GIT_BRANCH="-b master"
 		fi
 
-	else
-		OUTPUT_CURL="sources.tar"
-		# check if shpkg_no_strip_tarball is enabled
-		# normally all source tarballs have subdirectories in it
-		if [ ! "${shpkg_no_strip_tarball:-false}" == "true" ]; then
-			EXTRACTOR_PARAMS="-C pkgsrc --strip=1"
+		# check if we skip include submodules
+		if [ "${shpkg_git_skip_include_submodule:-false}" == "true" ]; then
+			SUBMODULE_INCLUDE=""
 		else
-			EXTRACTOR_PARAMS="-C pkgsrc"
+			SUBMODULE_INCLUDE="--recursive"
 		fi
-		# check whether to enable verbose extraction
-		if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
-			EXTRACTOR_MODE="tar -xvf"
+
+		# check if shpkg_git_depth values is specified
+		if [ -n "${shpkg_git_depth:-}" ]; then
+			GIT_DEPTH="--depth=${shpkg_git_depth}"
 		else
-			EXTRACTOR_MODE="tar -xf"
+			GIT_DEPTH=""
+		fi
+	else	
+		# check if the archive was explicitly chosen into zip, by default we use tar
+		if [ "${shpkg_source_archive_zip:-false}" == "true" ]; then
+			OUTPUT_CURL="sources.zip"
+			EXTRACTOR_PARAMS="-d ${SRCDIR}"
+			# check whether to enable verbose extraction
+			if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
+				EXTRACTOR_MODE="unzip"
+			else
+				EXTRACTOR_MODE="unzip -qq"
+			fi
+		else
+			OUTPUT_CURL="sources.tar"
+			# check if shpkg_no_strip_tarball is enabled
+			# normally all source tarballs have subdirectories in it
+			if [ ! "${shpkg_no_strip_tarball:-false}" == "true" ]; then
+				EXTRACTOR_PARAMS="-C ${SRCDIR} --strip=1"
+			else
+				EXTRACTOR_PARAMS="-C ${SRCDIR}"
+			fi
+			# check whether to enable verbose extraction
+			if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
+				EXTRACTOR_MODE="tar -xvf"
+			else
+				EXTRACTOR_MODE="tar -xf"
+			fi
 		fi
 	fi
 
 	# get source code
 	echo "${BGREEN}==> ${BOLD}Downloading sources...${NOATTR}"
-	curl --location --fail "${shpkg_source}" --output "${OUTPUT_CURL}"
+	if [ "${shpkg_src_use_git:-false}" == "true" ]; then
+		eval "git clone ${shpkg_source} ${GIT_BRANCH} ${SUBMODULE_INCLUDE} ${GIT_DEPTH} ${SRCDIR}"
+	else
+		curl --location --fail "${shpkg_source}" --output "${OUTPUT_CURL}"
+		mkdir -p "${SRCDIR}"
 
-	mkdir -p pkgsrc
-
-	# extract sources
-	echo "${BGREEN}==> ${BOLD}Extracting sources${NOATTR}"
-	eval "${EXTRACTOR_MODE} ${OUTPUT_CURL} ${EXTRACTOR_PARAMS}"
+		# extract sources
+		echo "${BGREEN}==> ${BOLD}Extracting sources${NOATTR}"
+		eval "${EXTRACTOR_MODE} ${OUTPUT_CURL} ${EXTRACTOR_PARAMS}"
+	fi
 
 	# check for prepare() function, usually this is a prehook function before building stuff
 	if declare -t -F prepare; then
