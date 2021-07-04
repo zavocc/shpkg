@@ -10,7 +10,7 @@ SHPKG_TERMUXROOT="/data/data/com.termux/files/usr"
 SHPKG_NAME="shpkg"
 
 # shpkg version
-SHPKG_VERSION="1.1.0"
+SHPKG_VERSION="1.2.0"
 
 # shpkg maintainer
 SHPKG_MAINTAINER="marcusz"
@@ -193,7 +193,7 @@ shpkg-do-install(){
 
 	# check if shpkg_source is specified
 	if [ -z "${shpkg_source:-}" ]; then
-		echo "${BRED}Error: ${BOLD}please specify a source code tarball url of a package!${NOATTR}"
+		echo "${BRED}Error: ${BOLD}please specify a source code url of a package!${NOATTR}"
 		exit 2
 	fi
 

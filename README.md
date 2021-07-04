@@ -22,6 +22,7 @@ Current requirements for shpkg are
 
 Optional dependencies for shpkg
 * unzip (for dealing with zip tarballs)
+* git (for fetching source code via git method)
 
 ### ⚠ Word of Warning!!! ⚠
 We have tested `shpkg` in a wide variety of systems like debian, termux, alpine
