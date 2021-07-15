@@ -18,6 +18,12 @@ SHPKG_MAINTAINER="marcusz"
 # shpkg package template directory
 SHPKG_PKGDIRS="${HOME}/.shpkg"
 
+# shpkg sources list
+SHPKG_REPOLIST="${HOME}/.config/shpkg_repo.list"
+
+# temporary directory
+SHPKG_TMPDIR="$(mktemp -d)"
+
 # add colors to add glyphs to the script
 if command -v tput 1>/dev/null 2>&1; then
 	NOATTR="$(tput sgr0)"
@@ -131,6 +137,9 @@ case "${ARG_ACTION}" in
 		;;
 	list)
 		SHPKG_ACTION="shpkg-do-list"
+		;;
+	update)
+		SHPKG_ACTION="shpkg-do-update"
 		;;
 	*)
 		SHPKG_ACTION="shpkg-show-help"
@@ -518,6 +527,96 @@ shpkg-do-list(){
 	ls "${SHPKG_PKGDIRS}" -1
 }
 
+
+shpkg-do-update(){
+	local FETCH_CMD
+	local FETCH_METHOD
+	local STRIP_METHOD
+
+	# check sources list file
+	if [ ! -e "${SHPKG_REPOLIST}" ]; then
+		echo "${BRED}Error: ${BOLD}you don't have a repository list file in ${SHPKG_REPOLIST}! please specify a repo url to fetch package buildscripts${NOATTR}"
+		exit 2
+	fi
+
+	# check if the repo list file is empty
+	if [ -z "$(cat ${SHPKG_REPOLIST})" ]; then
+		echo "${BRED}Error: ${BOLD}please specify build script url (git/tar/zip) to fetch package buildscripts!${NOATTR}"
+		exit 2
+	fi
+
+	# let's delete old cache
+	rm -rf "${SHPKG_PKGDIRS}"
+	mkdir -p "${SHPKG_PKGDIRS}"
+
+	echo "${BGREEN}==> ${BOLD}Updating build script lists...${NOATTR}"
+	# go through loop while reading repo list, one by one it will be parsed what's going to be done
+	# repos should contain extension at the end to identify the script what to do about it
+	# git - https://foo.bar/repo.git
+	# zip - https://foo.bar/repo.zip
+	# tar* - https://foo.bar/repo.tar
+	# they shouldn't contain subdirectories otherwise it would treat it as a package
+	# to strip, add strip: uri, e.g.:
+	# strip:https://foo.bar/repo-with-subdirectories.tar (Note that git method would ignore this situation)
+	for repolists in "$(cat ${SHPKG_REPOLIST})"; do
+		case "${repolists}" in
+		    *.git)
+			FETCH_METHOD="git"
+			;;
+		    *.zip)
+			FETCH_METHOD="zip"
+			;;
+		    *.tar.xz|*.tar.gz|*.tgz|*.tar|*.txz)
+		 	FETCH_METHOD="tar"
+			;;
+		    *)
+		 	echo "${BRED}Error: ${BOLD}unspecified url extension! valid url extensions are (tar.*, git, 7z)${NOATTR}"
+			exit 2
+			;;
+		esac
+
+		# check if they have strip: uri
+		if [ "${FETCH_METHOD}" == "git" ]; then
+			FETCH_CMD="git clone --quiet"
+			STRIP_METHOD="${SHPKG_TMPDIR}"
+		else
+			case "${repolists}" in
+			    strip:*)
+			    	if [ "${FETCH_METHOD}" == "tar" ]; then
+					FETCH_CMD="tar -xvf"
+					STRIP_METHOD="--strip=1 -C ${SHPKG_PKGDIRS}"
+				else
+					FETCH_CMD="unzip"
+					STRIP_METHOD="-d ${SHPKG_TMPDIR}"
+					MOVE="y"
+				fi
+			    *)
+				if [ "${FETCH_METHOD}" == "tar" ]; then
+					FETCH_CMD="tar -xvf"
+					STRIP_METHOD="-C ${SHPKG_PKGDIRS}"
+				else
+					FETCH_CMD="unzip"
+					STRIP_METHOD="-d ${SHPKG_PKGDIRS}"
+					MOVE=""
+				fi
+			esac
+		fi
+
+		# begin fetching
+		if [ "${FETCH_METHOD}" == "git" ]; then
+			eval "${FETCH_CMD} ${repolists} ${SHPKG_TMPDIR}/reporoot"
+			mv "${SHPKG_TMPDIR}/reporoot/*" "${SHPKG_PKGDIRS}/"
+		else
+			curl --location --silent "${repolists}" --output "${SHPKG_TMPDIR}/output-repo"
+			# begin package extract
+				eval "${FETCH_CMD} ${SHPKG_TMPDIR}/output-repo ${STRIP_METHOD}"
+				# check if we move things out
+				if [ -n "${MOVE}" ]; then
+					mv "${SHPKG_TMPDIR}/*/*" "${SHPKG_PKGDIRS}/"
+				fi
+		fi
+	done
+}
 
 shpkg-show-help(){
 	cat <<- EOM
