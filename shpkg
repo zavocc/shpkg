@@ -532,6 +532,7 @@ shpkg-do-update(){
 	local FETCH_CMD
 	local FETCH_METHOD
 	local STRIP_METHOD
+	local SED
 
 	# check sources list file
 	if [ ! -e "${SHPKG_REPOLIST}" ]; then
@@ -573,7 +574,7 @@ shpkg-do-update(){
 		 	FETCH_METHOD="tar"
 			;;
 		    *)
-		 	echo "${BRED}Error: ${BOLD}unspecified url extension! valid url extensions are (tar.*, git, 7z)${NOATTR}"
+		 	echo "${BRED}Error: ${BOLD}unspecified url extension! valid url extensions are (tar.*, git, zip)${NOATTR}"
 			exit 2
 			;;
 		esac
@@ -585,6 +586,7 @@ shpkg-do-update(){
 		else
 			case "${repolists}" in
 			    strip:*)
+			    	SED="y"
 			    	if [ "${FETCH_METHOD}" == "tar" ]; then
 					FETCH_CMD="tar -xvf"
 					STRIP_METHOD="--strip=1 -C ${SHPKG_PKGDIRS}"
@@ -595,6 +597,7 @@ shpkg-do-update(){
 				fi
 				;;
 			    *)
+			    	SED=""
 				if [ "${FETCH_METHOD}" == "tar" ]; then
 					FETCH_CMD="tar -xvf"
 					STRIP_METHOD="-C ${SHPKG_PKGDIRS}"
@@ -612,7 +615,11 @@ shpkg-do-update(){
 			eval "${FETCH_CMD} ${repolists} ${SHPKG_TMPDIR}/reporoot"
 			mv "${SHPKG_TMPDIR}/reporoot/*" "${SHPKG_PKGDIRS}/"
 		else
-			curl --location --silent "${repolists}" --output "${SHPKG_TMPDIR}/output-repo"
+			if [ -n "${SED}" ]; then
+				curl --location --silent "$(echo ${repolists} | sed 's/strip://g')" --output "${SHPKG_TMPDIR}/output-repo"
+			else
+				curl --location --silent "${repolists}" --output "${SHPKG_TMPDIR}/output-repo"
+			fi
 			# begin package extract
 				eval "${FETCH_CMD} ${SHPKG_TMPDIR}/output-repo ${STRIP_METHOD}"
 				# check if we move things out
