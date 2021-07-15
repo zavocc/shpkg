@@ -613,7 +613,7 @@ shpkg-do-update(){
 		# begin fetching
 		if [ "${FETCH_METHOD}" == "git" ]; then
 			eval "${FETCH_CMD} ${repolists} ${SHPKG_TMPDIR}/reporoot"
-			mv "${SHPKG_TMPDIR}/reporoot/*" "${SHPKG_PKGDIRS}/"
+			eval "mv ${SHPKG_TMPDIR}/reporoot/* ${SHPKG_PKGDIRS}/"
 		else
 			if [ -n "${SED}" ]; then
 				curl --location --silent "$(echo ${repolists} | sed 's/strip://g')" --output "${SHPKG_TMPDIR}/output-repo"
@@ -624,7 +624,7 @@ shpkg-do-update(){
 				eval "${FETCH_CMD} ${SHPKG_TMPDIR}/output-repo ${STRIP_METHOD}"
 				# check if we move things out
 				if [ -n "${MOVE}" ]; then
-					mv "${SHPKG_TMPDIR}/*/*" "${SHPKG_PKGDIRS}/"
+					eval "mv ${SHPKG_TMPDIR}/*/* ${SHPKG_PKGDIRS}/"
 				fi
 		fi
 
