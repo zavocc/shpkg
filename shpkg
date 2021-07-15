@@ -533,6 +533,7 @@ shpkg-do-update(){
 	local FETCH_METHOD
 	local STRIP_METHOD
 	local SED
+	local MOVE
 
 	# check sources list file
 	if [ ! -e "${SHPKG_REPOLIST}" ]; then
@@ -588,10 +589,11 @@ shpkg-do-update(){
 			    strip:*)
 			    	SED="y"
 			    	if [ "${FETCH_METHOD}" == "tar" ]; then
-					FETCH_CMD="tar -xvf"
+					FETCH_CMD="tar -xf"
 					STRIP_METHOD="--strip=1 -C ${SHPKG_PKGDIRS}"
+					MOVE=""
 				else
-					FETCH_CMD="unzip"
+					FETCH_CMD="unzip -qq"
 					STRIP_METHOD="-d ${SHPKG_TMPDIR}"
 					MOVE="y"
 				fi
@@ -599,10 +601,11 @@ shpkg-do-update(){
 			    *)
 			    	SED=""
 				if [ "${FETCH_METHOD}" == "tar" ]; then
-					FETCH_CMD="tar -xvf"
+					FETCH_CMD="tar -xf"
 					STRIP_METHOD="-C ${SHPKG_PKGDIRS}"
+					MOVE=""
 				else
-					FETCH_CMD="unzip"
+					FETCH_CMD="unzip -qq"
 					STRIP_METHOD="-d ${SHPKG_PKGDIRS}"
 					MOVE=""
 				fi
