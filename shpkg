@@ -549,6 +549,9 @@ shpkg-do-update(){
 	rm -rf "${SHPKG_PKGDIRS}"
 	mkdir -p "${SHPKG_PKGDIRS}"
 
+	# create tmpdir
+	mkdir -p "${SHPKG_TMPDIR}"
+
 	echo "${BGREEN}==> ${BOLD}Updating build script lists...${NOATTR}"
 	# go through loop while reading repo list, one by one it will be parsed what's going to be done
 	# repos should contain extension at the end to identify the script what to do about it
@@ -590,6 +593,7 @@ shpkg-do-update(){
 					STRIP_METHOD="-d ${SHPKG_TMPDIR}"
 					MOVE="y"
 				fi
+				;;
 			    *)
 				if [ "${FETCH_METHOD}" == "tar" ]; then
 					FETCH_CMD="tar -xvf"
@@ -599,6 +603,7 @@ shpkg-do-update(){
 					STRIP_METHOD="-d ${SHPKG_PKGDIRS}"
 					MOVE=""
 				fi
+				;;
 			esac
 		fi
 
@@ -615,6 +620,9 @@ shpkg-do-update(){
 					mv "${SHPKG_TMPDIR}/*/*" "${SHPKG_PKGDIRS}/"
 				fi
 		fi
+
+		# delete tmpdir to clean things up
+		rm -rf "${SHPKG_TMPDIR}"
 	done
 }
 
