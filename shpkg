@@ -584,6 +584,15 @@ shpkg-do-update(){
 		if [ "${FETCH_METHOD}" == "git" ]; then
 			FETCH_CMD="git clone --quiet"
 			STRIP_METHOD="${SHPKG_TMPDIR}"
+			# check for strip: uri, if it specified (cuz of user's curiosity). ignore it and just sed it
+			case "${repolists}" in
+			    strip:*.git)
+			    	SED="y"
+				;;
+			    *)
+			    	SED=""
+				;;
+			esac
 		else
 			case "${repolists}" in
 			    strip:*)
@@ -615,7 +624,12 @@ shpkg-do-update(){
 
 		# begin fetching
 		if [ "${FETCH_METHOD}" == "git" ]; then
-			eval "${FETCH_CMD} ${repolists} ${SHPKG_TMPDIR}/reporoot"
+			# check for sed variable, ignore the strip: uri:
+			if [ -n "${SED}" ]; then
+				eval "${FETCH_CMD} $(echo ${repolists} | sed 's/strip://g') ${SHPKG_TMPDIR}/reporoot"
+			else
+				eval "${FETCH_CMD} ${repolists} ${SHPKG_TMPDIR}/reporoot"
+			fi
 			eval "mv ${SHPKG_TMPDIR}/reporoot/* ${SHPKG_PKGDIRS}/"
 		else
 			if [ -n "${SED}" ]; then
@@ -629,6 +643,13 @@ shpkg-do-update(){
 				if [ -n "${MOVE}" ]; then
 					eval "mv ${SHPKG_TMPDIR}/*/* ${SHPKG_PKGDIRS}/"
 				fi
+		fi
+
+		# print out repo url's to indicate it's done updating, sed if possible to trip strip: uri
+		if [ -n "${SED}" ]; then
+			echo "${repolist}... done" | sed 's/strip://g'
+		else
+			echo "${repolist}... done"
 		fi
 
 		# delete tmpdir to clean things up
