@@ -647,9 +647,9 @@ shpkg-do-update(){
 
 		# print out repo url's to indicate it's done updating, sed if possible to trip strip: uri
 		if [ -n "${SED}" ]; then
-			echo "${repolist}... done" | sed 's/strip://g'
+			echo "${repolists}... done" | sed 's/strip://g'
 		else
-			echo "${repolist}... done"
+			echo "${repolists}... done"
 		fi
 
 		# delete tmpdir to clean things up
