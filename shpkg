@@ -10,13 +10,19 @@ SHPKG_TERMUXROOT="/data/data/com.termux/files/usr"
 SHPKG_NAME="shpkg"
 
 # shpkg version
-SHPKG_VERSION="1.2.0"
+SHPKG_VERSION="1.3.0"
 
 # shpkg maintainer
 SHPKG_MAINTAINER="marcusz"
 
 # shpkg package template directory
 SHPKG_PKGDIRS="${HOME}/.shpkg"
+
+# shpkg sources list
+SHPKG_REPOLIST="${HOME}/.config/shpkg_repo.list"
+
+# temporary directory
+SHPKG_TMPDIR="$(mktemp -d)"
 
 # add colors to add glyphs to the script
 if command -v tput 1>/dev/null 2>&1; then
@@ -131,6 +137,9 @@ case "${ARG_ACTION}" in
 		;;
 	list)
 		SHPKG_ACTION="shpkg-do-list"
+		;;
+	update)
+		SHPKG_ACTION="shpkg-do-update"
 		;;
 	*)
 		SHPKG_ACTION="shpkg-show-help"
@@ -518,6 +527,135 @@ shpkg-do-list(){
 	ls "${SHPKG_PKGDIRS}" -1
 }
 
+
+shpkg-do-update(){
+	local FETCH_CMD
+	local FETCH_METHOD
+	local STRIP_METHOD
+	local SED
+	local MOVE
+
+	# check sources list file
+	if [ ! -e "${SHPKG_REPOLIST}" ]; then
+		echo "${BRED}Error: ${BOLD}you don't have a repository list file in ${SHPKG_REPOLIST}! please specify a repo url to fetch package buildscripts${NOATTR}"
+		exit 2
+	fi
+
+	# check if the repo list file is empty
+	if [ -z "$(cat ${SHPKG_REPOLIST})" ]; then
+		echo "${BRED}Error: ${BOLD}please specify build script url (git/tar/zip) to fetch package buildscripts!${NOATTR}"
+		exit 2
+	fi
+
+	# let's delete old cache
+	rm -rf "${SHPKG_PKGDIRS}"
+	mkdir -p "${SHPKG_PKGDIRS}"
+
+	# create tmpdir
+	mkdir -p "${SHPKG_TMPDIR}"
+
+	echo "${BGREEN}==> ${BOLD}Updating and downloading build scripts...${NOATTR}"
+	# go through loop while reading repo list, one by one it will be parsed what's going to be done
+	# repos should contain extension at the end to identify the script what to do about it
+	# git - https://foo.bar/repo.git
+	# zip - https://foo.bar/repo.zip
+	# tar* - https://foo.bar/repo.tar
+	# they shouldn't contain subdirectories otherwise it would treat it as a package
+	# to strip, add strip: uri, e.g.:
+	# strip:https://foo.bar/repo-with-subdirectories.tar (Note that git method would ignore this situation)
+	while read repolists; do
+		case "${repolists}" in
+		    *.git)
+			FETCH_METHOD="git"
+			;;
+		    *.zip)
+			FETCH_METHOD="zip"
+			;;
+		    *.tar.xz|*.tar.gz|*.tgz|*.tar|*.txz)
+		 	FETCH_METHOD="tar"
+			;;
+		    *)
+		 	echo "${BRED}Error: ${BOLD}unspecified url extension! valid url extensions are (tar.*, git, zip)${NOATTR}"
+			exit 2
+			;;
+		esac
+
+		# check if they have strip: uri
+		if [ "${FETCH_METHOD}" == "git" ]; then
+			FETCH_CMD="git clone --quiet"
+			STRIP_METHOD="${SHPKG_TMPDIR}"
+			# check for strip: uri, if it specified (cuz of user's curiosity). ignore it and just sed it
+			case "${repolists}" in
+			    strip:*.git)
+			    	SED="y"
+				;;
+			    *)
+			    	SED=""
+				;;
+			esac
+		else
+			case "${repolists}" in
+			    strip:*)
+			    	SED="y"
+			    	if [ "${FETCH_METHOD}" == "tar" ]; then
+					FETCH_CMD="tar -xf"
+					STRIP_METHOD="--strip=1 -C ${SHPKG_PKGDIRS}"
+					MOVE=""
+				else
+					FETCH_CMD="unzip -qq"
+					STRIP_METHOD="-d ${SHPKG_TMPDIR}"
+					MOVE="y"
+				fi
+				;;
+			    *)
+			    	SED=""
+				if [ "${FETCH_METHOD}" == "tar" ]; then
+					FETCH_CMD="tar -xf"
+					STRIP_METHOD="-C ${SHPKG_PKGDIRS}"
+					MOVE=""
+				else
+					FETCH_CMD="unzip -qq"
+					STRIP_METHOD="-d ${SHPKG_PKGDIRS}"
+					MOVE=""
+				fi
+				;;
+			esac
+		fi
+
+		# begin fetching
+		if [ "${FETCH_METHOD}" == "git" ]; then
+			# check for sed variable, ignore the strip: uri:
+			if [ -n "${SED}" ]; then
+				eval "${FETCH_CMD} $(echo ${repolists} | sed 's/strip://g') ${SHPKG_TMPDIR}/reporoot"
+			else
+				eval "${FETCH_CMD} ${repolists} ${SHPKG_TMPDIR}/reporoot"
+			fi
+			eval "mv ${SHPKG_TMPDIR}/reporoot/* ${SHPKG_PKGDIRS}/"
+		else
+			if [ -n "${SED}" ]; then
+				curl --location --silent "$(echo ${repolists} | sed 's/strip://g')" --output "${SHPKG_TMPDIR}/output-repo"
+			else
+				curl --location --silent "${repolists}" --output "${SHPKG_TMPDIR}/output-repo"
+			fi
+			# begin package extract
+				eval "${FETCH_CMD} ${SHPKG_TMPDIR}/output-repo ${STRIP_METHOD}"
+				# check if we move things out
+				if [ -n "${MOVE}" ]; then
+					eval "mv ${SHPKG_TMPDIR}/*/* ${SHPKG_PKGDIRS}/"
+				fi
+		fi
+
+		# print out repo url's to indicate it's done updating, sed if possible to trip strip: uri
+		if [ -n "${SED}" ]; then
+			echo "${repolists}... done" | sed 's/strip://g'
+		else
+			echo "${repolists}... done"
+		fi
+	done < "${SHPKG_REPOLIST}"
+
+	# delete tmpdir to clean things up
+	rm -rf "${SHPKG_TMPDIR}"
+}
 
 shpkg-show-help(){
 	cat <<- EOM

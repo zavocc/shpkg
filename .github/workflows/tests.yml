@@ -16,10 +16,12 @@ jobs:
       TERM: "xterm-256color"
     steps:
       - uses: actions/checkout@v2
-      - name: Clone ports repository
+      - name: Download buildscripts
         run: |
-          git clone https://github.com/shpkg/ports "${HOME}/.shpkg"
-
+          mkdir -p "${HOME}/.config"
+          echo "https://github.com/shpkg/ports.git" > "${HOME}/.config/shpkg_repo.list"
+          ./shpkg update
+  
       - name: Installation Tests
         run: |
           yes | ./shpkg install hello-world

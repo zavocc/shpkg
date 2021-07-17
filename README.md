@@ -32,26 +32,14 @@ Some packages may break your system or leave it in a inconsistent state, so befo
 It is also highly recommended not to remove build dependencies or runtime dependencies if it asks you as it does not track dependencies carefully on what other packages depends on, this would make your system unstable and possibly affect the other packages to be uninstalled as well unconditionally so review the build scripts first before doing it
 
 # Installation
-once you have dependencies installed [download](https://raw.githubusercontent.com/shpkg/shpkg/master/shpkg) the `shpkg` script, you can install it by simply placing it into `/usr/local/bin` or `$PREFIX/bin` (for termux)
+Run the command:
+```
+. <(curl -LO https://git.io/setup-shpkg.sh)
+```
+to install `shpkg` script on your system
 
 # Package Installation
-Before installing packages with `shpkg`, make sure you have build scripts placed in:
-```
-$HOME/.shpkg
-```
-Inside that directory where `shpkg` gathers package build script information
-
-You can try adding sample build scripts by fetching [shpkg/ports](https://github.com/shpkg/ports) repository
-```
-git clone https://github.com/shpkg/ports $HOME/.shpkg
-```
-
-for Termux, it has it's own [separate repo](https://github.com/shpkg/termux-ports) specifically for Termux as it has major differences from linux
-```
-git clone https://github.com/shpkg/termux-ports $HOME/.shpkg
-```
-
----
+Run `shpkg update` first to download buildscripts, the repo list file located in `$HOME/.config/shpkg_repo.list`
 
 For package installation, you can do
 ```
@@ -84,5 +72,5 @@ shpkg query <package>
 *It opens `less` as a default viewing of `shpkg` build scripts, if you want to change that behaviour, you can specify `PAGER=<viewer>` environment variable*
 
 # To-Do
-* Add `shpkg update` option (similar to `apt update`)
+* ~~Add `shpkg update` option (similar to `apt update`)~~ done
 
