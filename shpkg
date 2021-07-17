@@ -563,7 +563,7 @@ shpkg-do-update(){
 	# they shouldn't contain subdirectories otherwise it would treat it as a package
 	# to strip, add strip: uri, e.g.:
 	# strip:https://foo.bar/repo-with-subdirectories.tar (Note that git method would ignore this situation)
-	for repolists in "$(cat ${SHPKG_REPOLIST})"; do
+	while read repolists; do
 		case "${repolists}" in
 		    *.git)
 			FETCH_METHOD="git"
@@ -654,7 +654,7 @@ shpkg-do-update(){
 
 		# delete tmpdir to clean things up
 		rm -rf "${SHPKG_TMPDIR}"
-	done
+	done < "${SHPKG_REPOLIST}"
 }
 
 shpkg-show-help(){
