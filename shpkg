@@ -10,7 +10,7 @@ SHPKG_TERMUXROOT="/data/data/com.termux/files/usr"
 SHPKG_NAME="shpkg"
 
 # shpkg version
-SHPKG_VERSION="1.2.0"
+SHPKG_VERSION="1.3.0"
 
 # shpkg maintainer
 SHPKG_MAINTAINER="marcusz"
@@ -554,7 +554,7 @@ shpkg-do-update(){
 	# create tmpdir
 	mkdir -p "${SHPKG_TMPDIR}"
 
-	echo "${BGREEN}==> ${BOLD}Updating build script lists...${NOATTR}"
+	echo "${BGREEN}==> ${BOLD}Updating and downloading build scripts...${NOATTR}"
 	# go through loop while reading repo list, one by one it will be parsed what's going to be done
 	# repos should contain extension at the end to identify the script what to do about it
 	# git - https://foo.bar/repo.git
@@ -651,10 +651,10 @@ shpkg-do-update(){
 		else
 			echo "${repolists}... done"
 		fi
-
-		# delete tmpdir to clean things up
-		rm -rf "${SHPKG_TMPDIR}"
 	done < "${SHPKG_REPOLIST}"
+
+	# delete tmpdir to clean things up
+	rm -rf "${SHPKG_TMPDIR}"
 }
 
 shpkg-show-help(){
