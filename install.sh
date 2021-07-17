@@ -6,11 +6,11 @@ GIT_URL="https://raw.githubusercontent.com/shpkg/shpkg/${GIT_BRANCH}"
 # check for operating system (android)
 if [ -e /system/bin/app_process ]; then
 	INSTALL_DIR="/data/data/com.termux/files/usr/bin"
-	REPO_LIST="shpkg_repo_android.list"
+	REPO_URL="https://github.com/shpkg/termux-ports"
 	SUDO=""
 else
 	INSTALL_DIR="/usr/local/bin"
-	REPO_LIST="shpkg_repo.list"
+	REPO_URL="https://github.com/shpkg/ports"
 	if [ "$(id -u)" == "0" ]; then
 		SUDO=""
 	else
@@ -28,7 +28,7 @@ ${SUDO} bash -c \
 
 # setup repository lists
 mkdir -p "${HOME}/.config"
-curl --silent --fail --location "${GIT_URL}/config/${REPO_LIST}" --output "${HOME}/.config/shpkg_repo.list"
+echo "${REPO_URL}" > "${HOME}/.config/shpkg_repo.list"
 
 # install script
 ${SUDO} curl --location "${GIT_URL}/shpkg" --output "${INSTALL_DIR}/shpkg"
