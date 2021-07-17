@@ -34,7 +34,7 @@ It is also highly recommended not to remove build dependencies or runtime depend
 # Installation
 Run the command:
 ```
-. <(curl -LO https://git.io/setup-shpkg.sh)
+. <(curl -sL https://git.io/setup-shpkg.sh)
 ```
 to install `shpkg` script on your system
 
