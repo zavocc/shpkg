@@ -16,10 +16,9 @@ jobs:
       TERM: "xterm-256color"
     steps:
       - uses: actions/checkout@v2
-      - name: Download buildscripts
+      - name: Setup buildscripts
         run: |
-          mkdir -p "${HOME}/.config"
-          echo "https://github.com/shpkg/ports.git" > "${HOME}/.config/shpkg_repo.list"
+          . ./install.sh
           ./shpkg update
   
       - name: Installation Tests
