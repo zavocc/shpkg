@@ -34,4 +34,3 @@ echo "${DEFAULT_REPO_URL}" > "${HOME}/.config/shpkg_repo.list"
 # install script
 ${SUDO} curl --location "${GIT_URL}/shpkg" --output "${INSTALL_DIR}/shpkg"
 ${SUDO} chmod 755 "${INSTALL_DIR}/shpkg"
-
