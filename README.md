@@ -38,8 +38,22 @@ Run the command:
 ```
 to install `shpkg` script on your system
 
+# Setting up buildscripts
+### Automatically adding a repository
+Run `shpkg update` first to download buildscripts, the repo list file located in `~/.config/shpkg_repo.list`. for more information please see [shpkg repo docs](./docs/repo.md)
+
+the `update` function is quite experimental if you saw the known bugs
+### Manually adding a repository
+#### For every Linux distros
+```
+git clone https://github.com/shpkg/ports ~/.shpkg
+```
+#### For Termux
+```
+git clone https://github.com/shpkg/termux-ports ~/.shpkg
+```
+
 # Package Installation
-Run `shpkg update` first to download buildscripts, the repo list file located in `$HOME/.config/shpkg_repo.list`
 
 For package installation, you can do
 ```
