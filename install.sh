@@ -26,10 +26,11 @@ ${SUDO} bash -c \
 	"apt install ${DEBIAN_INSTALL_DEPS} || pacman -S ${NON_DEBIAN_INSTALL_DEPS} --needed \
 	|| dnf install ${NON_DEBIAN_INSTALL_DEPS} || apk add ${NON_DEBIAN_INSTALL_DEPS}" 2> /dev/null
 
-# setup repository lists
-if [ ! -e "${HOME}/.config/shpkg_repo.list" ]
-mkdir -p "${HOME}/.config"
-echo "${DEFAULT_REPO_URL}" > "${HOME}/.config/shpkg_repo.list"
+# setup repository lists (if possible)
+if [ ! -e "${HOME}/.config/shpkg_repo.list" ]; then
+	mkdir -p "${HOME}/.config"
+	echo "${DEFAULT_REPO_URL}" > "${HOME}/.config/shpkg_repo.list"
+fi
 
 # install script
 ${SUDO} curl --location "${GIT_URL}/shpkg" --output "${INSTALL_DIR}/shpkg"
