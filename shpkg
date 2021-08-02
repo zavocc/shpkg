@@ -563,8 +563,11 @@ shpkg-do-update(){
 	# they shouldn't contain subdirectories otherwise it would treat it as a package
 	# to strip, add strip: uri, e.g.:
 	# strip:https://foo.bar/repo-with-subdirectories.tar (Note that git method would ignore this situation)
-	while read repolists; do
+	while IFS=$'\n' read repolists; do
 		case "${repolists}" in
+		    '#'*)
+			break
+			;;
 		    *.git)
 			FETCH_METHOD="git"
 			;;
