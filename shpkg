@@ -564,7 +564,7 @@ shpkg-do-update(){
 	# to strip, add strip: uri, e.g.:
 	# strip:https://foo.bar/repo-with-subdirectories.tar (Note that git method would ignore this situation)
 	while IFS=$'\n' read repolists; do
-	SHPKG_TMPDIR="$(mktemp -d -p ${SHPKG_PERSIST_TMPDIR})"
+	SHPKG_TMPDIR="$(mktemp -d -p ${SHPKG_PERSIST_TMPDIR})" # maybe messy but a worthy way to do it :)
 		case "${repolists}" in
 		    '#'*)
 			continue
@@ -657,7 +657,7 @@ shpkg-do-update(){
 		fi
 
 	# delete tmpdir to clean things up
-	rm -rf "${SHPKG_TMPDIR}"
+	rm -rf "${SHPKG_PERSIST_TMPDIR}/*"
 	done < "${SHPKG_REPOLIST}"
 }
 
