@@ -566,7 +566,7 @@ shpkg-do-update(){
 	while IFS=$'\n' read repolists; do
 		case "${repolists}" in
 		    '#'*)
-			break
+			continue
 			;;
 		    *.git)
 			FETCH_METHOD="git"
