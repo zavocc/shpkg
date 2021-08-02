@@ -657,7 +657,7 @@ shpkg-do-update(){
 		fi
 
 	# delete tmpdir to clean things up
-	eval "rm -rf ${SHPKG_PERSIST_TMPDIR}/*"
+	rm -rf ${SHPKG_PERSIST_TMPDIR}/*
 	done < "${SHPKG_REPOLIST}"
 }
 
