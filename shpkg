@@ -532,8 +532,6 @@ shpkg-do-update(){
 	local FETCH_CMD
 	local FETCH_METHOD
 	local STRIP_METHOD
-	local SHPKG_TMPDIR
-	local SHPKG_PERSIST_TMPDIR
 	local SED
 	local MOVE
 
