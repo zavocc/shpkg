@@ -533,6 +533,7 @@ shpkg-do-update(){
 	local FETCH_METHOD
 	local STRIP_METHOD
 	local SHPKG_TMPDIR
+	local SHPKG_PERSIST_TMPDIR
 	local SED
 	local MOVE
 
@@ -553,7 +554,7 @@ shpkg-do-update(){
 	mkdir -p "${SHPKG_PKGDIRS}"
 
 	# create tmpdir
-	mkdir -p "${SHPKG_TMPDIR}"
+	mkdir -p "${SHPKG_PERSIST_TMPDIR}"
 
 	echo "${BGREEN}==> ${BOLD}Updating and downloading build scripts...${NOATTR}"
 	# go through loop while reading repo list, one by one it will be parsed what's going to be done
