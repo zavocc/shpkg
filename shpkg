@@ -348,7 +348,7 @@ shpkg-do-install(){
 		else
 			GIT_DEPTH=""
 		fi
-	else	
+	else
 		# check if the archive was explicitly chosen into zip, by default we use tar
 		if [ "${shpkg_source_archive_zip:-false}" == "true" ]; then
 			OUTPUT_CURL="sources.zip"
