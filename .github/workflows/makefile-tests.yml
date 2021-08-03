@@ -20,7 +20,7 @@ jobs:
         run: |
           sudo make install
 
-          if [ ! -e /usr/local/bin/shpkg ]; then
+          if ! command -v shpkg >/dev/null 2>&1; then
             echo "make install failed!"
             exit 2
           fi
@@ -29,7 +29,7 @@ jobs:
         run: |
           sudo make uninstall
 
-          if [ -e /usr/local/bin/shpkg ]; then
+          if command -v shpkg >/dev/null 2>&1; then
             echo "make uninstall failed!"
             exit 2
           fi
