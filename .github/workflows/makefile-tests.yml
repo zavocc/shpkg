@@ -1,4 +1,4 @@
-name: Automated Tests
+name: Makefile validation
 
 on:
   push:
@@ -16,32 +16,20 @@ jobs:
       TERM: "xterm-256color"
     steps:
       - uses: actions/checkout@v2
-      - name: Setup buildscripts
+      - name: make install tests
         run: |
-          make install
-          ./shpkg update
+          sudo make install
 
-      - name: Installation Tests
-        run: |
-          yes | ./shpkg install hello-world
-
-      - name: Execution Tests
-        run: |
-          for exec in /opt/shpkg/hello-world/bin/shpkg-hello /usr/local/bin/shpkg-hello; do
-            if [ ! -f "${exec}" ]; then
-              echo "Installation isn't successful!"
-              exit 2
-            fi
-          done
-
-          if ! shpkg-hello !>/dev/null 2>&1; then
-            echo "Installation isn't successful!"
+          if [ ! -e /usr/local/bin/shpkg ]; then
+            echo "make install failed!"
             exit 2
           fi
 
-          shpkg-hello
-
-      - name: Uninstallation Tests
+      - name: make uninstall tests
         run: |
-          yes | ./shpkg uninstall hello-world
-          make uninstall
+          sudo make uninstall
+
+          if [ -e /usr/local/bin/shpkg ]; then
+            echo "make uninstall failed!"
+            exit 2
+          fi
