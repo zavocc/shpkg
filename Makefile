@@ -1,8 +1,8 @@
 # check if $PREFIX is specified
 ifeq ($(PREFIX),)
-SYSROOT = $(PREFIX)
+SYSROOT := $(PREFIX)
 else
-SYSROOT = /usr
+SYSROOT := /usr
 endif
 
 install:
