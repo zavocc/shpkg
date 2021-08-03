@@ -7,6 +7,7 @@ The config file is in `~/.config/shpkg_repo.list` or `$XDG_CONFIG_HOME/shpkg_rep
 
 An example of repolist file
 ```
+# this is a comment
 https://github.com/shpkg/ports.git
 https://foo.bar/buildscripts.zip
 https://foo.bar/buildscripts.tar.xz
@@ -15,8 +16,8 @@ https://foo.bar/buildscripts.tar.xz
 when adding repos, `*.git, *.zip, *.tar` extension should be specified at the end to know what method is going to be used when fetching
 
 #### Known bugs in the repolist file
-* Newlines are being treated as URL, an implementation fix is welcome
-* Comments are also being treated as URL, an implementation fix is welcome
+* Newlines are being treated as URL, an implementation fix is welcome (fixed in 1.3.1)
+* Comments are also being treated as URL, an implementation fix is welcome (fixed in 1.3.1)
 
 ### Buildscript fetching
 When fetching buildscripts through git or tarball, buildscripts is being placed in `~/.shpkg/`
