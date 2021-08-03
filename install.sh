@@ -6,11 +6,11 @@ GIT_URL="https://raw.githubusercontent.com/shpkg/shpkg/${GIT_BRANCH}"
 # check for operating system (android)
 if [ -e /system/bin/app_process ]; then
 	INSTALL_DIR="/data/data/com.termux/files/usr/bin"
-	DEFAULT_REPO_URL="https://github.com/shpkg/termux-ports.git"
+	DISTRO="android"
 	SUDO=""
 else
 	INSTALL_DIR="/usr/local/bin"
-	DEFAULT_REPO_URL="https://github.com/shpkg/ports.git"
+	DISTRO="linux"
 	if [ "$(id -u)" == "0" ]; then
 		SUDO=""
 	else
@@ -29,7 +29,30 @@ ${SUDO} bash -c \
 # setup repository lists (if possible)
 if [ ! -e "${HOME}/.config/shpkg_repo.list" ]; then
 	mkdir -p "${HOME}/.config"
-	echo "${DEFAULT_REPO_URL}" > "${HOME}/.config/shpkg_repo.list"
+	# initialize EOM heredoc by filling repo
+	if [ "${DISTRO}" == "android" ]; then
+		cat <<-EOM >> "${HOME}/.config/shpkg_repo.list"
+		# repository list for shpkg
+		# supported types are direct tarball download (zip or tar) or git url
+		# e.g.:
+		# https://github.com/shpkg/ports.git
+		# strip:https://github.com/shpkg/ports/archive/refs/heads/master.zip
+		#
+		# specify strip: if the tarball containing buildscript uses subdirectories
+		https://github.com/shpkg/termux-ports.git
+		EOM
+	else
+		cat <<-EOM >> "${HOME}/.config/shpkg_repo.list"
+		# repository list for shpkg
+		# supported types are direct tarball download (zip or tar) or git url
+		# e.g.:
+		# https://github.com/shpkg/ports.git
+		# strip:https://github.com/shpkg/ports/archive/refs/heads/master.zip
+		#
+		# specify strip: if the tarball containing buildscript uses subdirectories
+		https://github.com/shpkg/ports.git
+		EOM
+	fi
 fi
 
 # install script
