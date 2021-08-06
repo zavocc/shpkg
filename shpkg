@@ -37,6 +37,14 @@ else
 	BGREEN=$'\e[1;32m'
 fi
 
+# perform environment checks
+for deps in xz tar curl less; do
+	if ! command -v ${deps} >/dev/null 2>&1; then
+		echo "${BRED}Error: ${BOLD}the program '${deps}' isn't installed! please install it!${NOATTR}"
+		exit 2
+	fi
+done
+
 # check distro
 if [ ! -e "${HOME}/.shpkg-lock" ]; then
 	if [ -e "/usr/bin/apt" ]; then
@@ -527,6 +535,64 @@ shpkg-do-list(){
 	ls "${SHPKG_PKGDIRS}" -1
 }
 
+shpkg-show-package-info(){
+	local PACKAGE_NAME
+
+	check-package-ifexists # checks for package directory metadata
+	check-shpkg-build # checks for SHPKG_BUILD script
+
+	# source the SHPKG_BUILD script
+	source "${SHPKG_WHATISDIR}/SHPKG_BUILD"
+
+	# package name, else fallback
+	if [ -n "${shpkg_name:-}" ]; then
+		PACKAGE_NAME="${shpkg_name}"
+	else
+		PACKAGE_NAME="${ARG_PACKAGE}"
+	fi
+
+	# obtain package info
+	# name
+	nam="${PACKAGE_NAME}"
+	# description
+	if [ -n "${shpkg_description:-}" ]; then
+		desc="${shpkg_description:-}"
+	else
+		desc="Not Set"
+	fi
+	# version
+	if [ -n "${shpkg_version:-}" ]; then
+		ver="${shpkg_version:-}"
+	else
+		ver="Not Set"
+	fi
+	# dependencies
+	if [ -n "${shpkg_depends:-}" ]; then
+		deps="${shpkg_depends:-}"
+	else
+		deps="Not set"
+	fi
+	# build depends
+	if [ -n "${shpkg_build_depends:-}" ]; then
+		builddeps="${shpkg_build_depends:-}"
+	else
+		builddeps="Not Set"
+	fi
+	# source code
+	if [ -n "${shpkg_source:-}" ]; then
+		src="${shpkg_source:-}"
+	else
+		src="Not Set"
+	fi
+
+	# assemble info
+	echo "Name: ${nam}"
+	echo "Description ${desc}"
+	echo "Version: ${ver}"
+	echo "Dependencies: ${deps}"
+	echo "Build Dependencies: ${builddeps}"
+	echo "Source Code: ${src}"
+}
 
 shpkg-do-update(){
 	local FETCH_CMD
