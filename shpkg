@@ -10,7 +10,7 @@ SHPKG_TERMUXROOT="/data/data/com.termux/files/usr"
 SHPKG_NAME="shpkg"
 
 # shpkg version
-SHPKG_VERSION="1.3.1"
+SHPKG_VERSION="1.4.0"
 
 # shpkg maintainer
 SHPKG_MAINTAINER="marcusz"
@@ -743,6 +743,8 @@ shpkg-show-help(){
 	 uninstall - removes a desired package
 	 query - gathers information within a package
 	 list - lists available packages
+	 update - update buildscripts
+	 info | show - show package buildscript information
 
 	This script dosen't need to run under sudo
 	moreover it still accesses sudo for dependency installation depending on a package
