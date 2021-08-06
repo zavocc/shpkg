@@ -149,6 +149,9 @@ case "${ARG_ACTION}" in
 	update)
 		SHPKG_ACTION="shpkg-do-update"
 		;;
+	info|show)
+		SHPKG_ACTION="shpkg-show-package-info"
+		;;
 	*)
 		SHPKG_ACTION="shpkg-show-help"
 		;;
