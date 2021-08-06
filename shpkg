@@ -590,7 +590,7 @@ shpkg-show-package-info(){
 
 	# assemble info
 	echo "Name: ${nam}"
-	echo "Description ${desc}"
+	echo "Description: ${desc}"
 	echo "Version: ${ver}"
 	echo "Dependencies: ${deps}"
 	echo "Build Dependencies: ${builddeps}"
