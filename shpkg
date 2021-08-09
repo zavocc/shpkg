@@ -3,9 +3,6 @@
 
 set -euo pipefail # Bash strict mode
 
-# termux's long prefix
-SHPKG_TERMUXROOT="/data/data/com.termux/files/usr"
-
 # shpkg name
 SHPKG_NAME="shpkg"
 
@@ -57,7 +54,7 @@ if [ ! -e "${HOME}/.shpkg-lock" ]; then
 		distro="redhat"
 	elif [ -e "/sbin/apk" ]; then
 		distro="alpine"
-	elif [ -e "${SHPKG_TERMUXROOT}/bin/apt" ]; then
+	elif [ -e "${PREFIX:-/data/data/com.termux/files/usr}/bin/apt" ]; then
 		distro="termux"
 	else
 		cat <<- EOF
@@ -589,12 +586,12 @@ shpkg-show-package-info(){
 	fi
 
 	# assemble info
-	echo "Name: ${nam}"
-	echo "Description: ${desc}"
-	echo "Version: ${ver}"
-	echo "Dependencies: ${deps}"
-	echo "Build Dependencies: ${builddeps}"
-	echo "Source Code: ${src}"
+	echo "${BOLD}Name:${NOATTR} ${nam}"
+	echo "${BOLD}Description:${NOATTR} ${desc}"
+	echo "${BOLD}Version:${NOATTR} ${ver}"
+	echo "${BOLD}Dependencies:${NOATTR} ${deps}"
+	echo "${BOLD}Build Dependencies:${NOATTR} ${builddeps}"
+	echo "${BOLD}Source Code:${NOATTR} ${src}"
 }
 
 shpkg-do-update(){
