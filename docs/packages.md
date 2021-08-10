@@ -73,3 +73,5 @@ Those functions are used to install packages, all of these functions are optiona
 * Specify `remove()` function for package removal
 
 * Avoid unbound variables, you may need to use `${UNBOUND_VAR:-}` colon-dash and bracket it to fallback to something on your buildscript
+
+* All commands must be in appropriate functions, (applying patches through `prepare()`), this is done to provide clean code style of the build script

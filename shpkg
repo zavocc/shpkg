@@ -7,7 +7,7 @@ set -euo pipefail # Bash strict mode
 SHPKG_NAME="shpkg"
 
 # shpkg version
-SHPKG_VERSION="1.4.0"
+SHPKG_VERSION="1.4.1"
 
 # shpkg maintainer
 SHPKG_MAINTAINER="marcusz"
