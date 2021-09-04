@@ -310,7 +310,7 @@ shpkg-do-install(){
 
 		# check if it's compatible by obtaining status
 		if [ "${NOTCOMPATIBLE:-}" == "1" ]; then
-			echo "${BRED}Error: the package ${PACKAGE_NAME} isn't compatible with your architecture${NOATTR}"
+			echo "${BRED}Error: ${BOLD}the package ${PACKAGE_NAME} isn't compatible with your architecture${NOATTR}"
 			exit 2
 		fi
 	fi
