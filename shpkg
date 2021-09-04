@@ -255,50 +255,55 @@ shpkg-do-install(){
 	# some packages aren't compatible with the architecture
 	# the shpkg_arch_only will facilitate that
 	if [ -n "${shpkg_arch_only:-}" ]; then
-		case "${shpkg_arch_only}" in
-			x86_64|amd64|x64)
-				guess_arch="amd64"
-				;;
-			i686|i386|x86)
-				guess_arch="i386"
-				;;
-			armv7l|armv8l|armhf)
-				guess_arch="armhf"
-				;;
-			aarch64|arm64)
-				guess_arch="arm64"
-				;;
-			*)
-				cat <<- EOM
-				${BRED}Error: ${BOLD}the architecture ${shpkg_arch_only} isn't supported or invalid
+		# multi-value variables
+		# format would be like
+		# shpkg_arch_only=(x86_64 aarch64)
+		for detect_arch in "${shpkg_arch_only[@]}"; do
+			case "${detect}" in
+				x86_64|amd64|x64)
+					guess_arch="amd64"
+					;;
+				i686|i386|x86)
+					guess_arch="i386"
+					;;
+				armv7l|armv8l|armhf)
+					guess_arch="armhf"
+					;;
+				aarch64|arm64)
+					guess_arch="arm64"
+					;;
+				*)
+					cat <<- EOM
+					${BRED}Error: ${BOLD}the architecture ${shpkg_arch_only} isn't supported or invalid
 
-				Supported arches are usually (amd64, i386, armhf, arm64)${NOATTR}
-				EOM
+					Supported arches are usually (amd64, i386, armhf, arm64)${NOATTR}
+					EOM
+					exit 2
+					;;
+			esac
+
+			# detect real arch
+			case "$(uname -m)" in
+				x86_64|amd64|x64)
+					real_arch="amd64"
+					;;
+				i686|i386|x86)
+					real_arch="i386"
+					;;
+				armv7l|armv8l|armhf)
+					real_arch="armhf"
+					;;
+				aarch64|arm64)
+					arch_arch="arm64"
+					;;
+			esac
+
+			# check if those arches match
+			if [ ! "${guess_arch}" == "${real_arch}" ]; then
+				echo "${BRED}Error: the package ${PACKAGE_NAME} isn't compatible with your architecture${NOATTR}"
 				exit 2
-				;;
-		esac
-
-		# detect real arch
-		case "$(uname -m)" in
-			x86_64|amd64|x64)
-				real_arch="amd64"
-				;;
-			i686|i386|x86)
-				real_arch="i386"
-				;;
-			armv7l|armv8l|armhf)
-				real_arch="armhf"
-				;;
-			aarch64|arm64)
-				arch_arch="arm64"
-				;;
-		esac
-
-		# check if those arches match
-		if [ ! "${guess_arch}" == "${real_arch}" ]; then
-			echo "${BRED}Error: the package ${PACKAGE_NAME} isn't compatible with your architecture${NOATTR}"
-			exit 2
-		fi
+			fi
+		done
 	fi
 
 
