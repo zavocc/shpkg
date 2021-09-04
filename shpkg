@@ -294,7 +294,7 @@ shpkg-do-install(){
 					real_arch="armhf"
 					;;
 				aarch64|arm64)
-					arch_arch="arm64"
+					real_arch="arm64"
 					;;
 			esac
 
