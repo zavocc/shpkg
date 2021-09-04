@@ -191,7 +191,7 @@ shpkg-do-install(){
 
 	# package name, else fallback
 	if [ -n "${shpkg_name:-}" ]; then
-		PACKAGE_NAME="${shpkg_name}"
+		PACKAGE_NAME="${shpkg_name[@]}"
 	else
 		PACKAGE_NAME="${ARG_PACKAGE}"
 	fi
