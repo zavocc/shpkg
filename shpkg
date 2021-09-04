@@ -551,7 +551,7 @@ shpkg-show-package-info(){
 
 	# package name, else fallback
 	if [ -n "${shpkg_name:-}" ]; then
-		PACKAGE_NAME="${shpkg_name}"
+		PACKAGE_NAME="${shpkg_name[@]}"
 	else
 		PACKAGE_NAME="${ARG_PACKAGE}"
 	fi
@@ -561,31 +561,31 @@ shpkg-show-package-info(){
 	nam="${PACKAGE_NAME}"
 	# description
 	if [ -n "${shpkg_description:-}" ]; then
-		desc="${shpkg_description:-}"
+		desc="${shpkg_description[@]:-}"
 	else
 		desc="Not Set"
 	fi
 	# version
 	if [ -n "${shpkg_version:-}" ]; then
-		ver="${shpkg_version:-}"
+		ver="${shpkg_version[@]:-}"
 	else
 		ver="Not Set"
 	fi
 	# dependencies
 	if [ -n "${shpkg_depends:-}" ]; then
-		deps="${shpkg_depends:-}"
+		deps="${shpkg_depends[@]:-}"
 	else
 		deps="Not set"
 	fi
 	# build depends
 	if [ -n "${shpkg_build_depends:-}" ]; then
-		builddeps="${shpkg_build_depends:-}"
+		builddeps="${shpkg_build_depends[@]:-}"
 	else
 		builddeps="Not Set"
 	fi
 	# source code
 	if [ -n "${shpkg_source:-}" ]; then
-		src="${shpkg_source:-}"
+		src="${shpkg_source[@]:-}"
 	else
 		src="Not Set"
 	fi
