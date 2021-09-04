@@ -258,6 +258,7 @@ shpkg-do-install(){
 		# multi-value variables
 		# format would be like
 		# shpkg_arch_only=(x86_64 aarch64)
+
 		for detect_arch in "${shpkg_arch_only[@]}"; do
 			case "${detect_arch}" in
 				x86_64|amd64|x64)
@@ -274,7 +275,7 @@ shpkg-do-install(){
 					;;
 				*)
 					cat <<- EOM
-					${BRED}Error: ${BOLD}the architecture ${shpkg_arch_only} isn't supported or invalid
+					${BRED}Error: ${BOLD}the architecture ${detect_arch} isn't supported or invalid
 
 					Supported arches are usually (amd64, i386, armhf, arm64)${NOATTR}
 					EOM
@@ -300,10 +301,18 @@ shpkg-do-install(){
 
 			# check if those arches match
 			if [ ! "${guess_arch}" == "${real_arch}" ]; then
-				echo "${BRED}Error: the package ${PACKAGE_NAME} isn't compatible with your architecture${NOATTR}"
-				exit 2
+				NOTCOMPATIBLE=1
+			else
+				NOTCOMPATIBLE=0
+				break
 			fi
 		done
+
+		# check if it's compatible by obtaining status
+		if [ "${NOTCOMPATIBLE:-}" == "1" ]; then
+			echo "${BRED}Error: the package ${PACKAGE_NAME} isn't compatible with your architecture${NOATTR}"
+			exit 2
+		fi
 	fi
 
 
