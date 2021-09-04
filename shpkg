@@ -401,13 +401,13 @@ shpkg-do-install(){
 	# check if auto-patch is disabled
 	if [ ! "${shpkg_disable_auto_patch_src:-false}" == "true" ]; then
 		# patch source code if necessary
-		if [ -e "*.patch" ]; then
-			cd "${SRCDIR}"
-			for patches in ../*.patch; do
+		cd "${SRCDIR}"
+		for patches in ../*.patch; do
+			if [ -e "${patches}" ]; then
 				patch -p1 < "${patches}"
-			done
-			cd ..
-		fi
+			fi
+		done
+		cd ..
 	fi
 
 	# check for prepare() function, usually this is a prehook function before building stuff
