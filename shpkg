@@ -398,7 +398,7 @@ shpkg-do-install(){
 		eval "${EXTRACTOR_MODE} ${OUTPUT_CURL} ${EXTRACTOR_PARAMS}"
 	fi
 
-	# check if auto-patch is disabled
+	# check if auto-patch is disabled, if shpkg_disable_auto_patch_src is set will not apply patch automatically
 	if [ ! "${shpkg_disable_auto_patch_src:-false}" == "true" ]; then
 		# patch source code if necessary
 		cd "${SRCDIR}"
