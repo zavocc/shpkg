@@ -401,7 +401,7 @@ shpkg-do-install(){
 	# check if auto-patch is disabled
 	if [ ! "${shpkg_disable_auto_patch_src:-false}" == "true" ]; then
 		# patch source code if necessary
-		if [ -e *.patch ]; then
+		if [ -e "*.patch" ]; then
 			cd "${SRCDIR}"
 			for patches in ../*.patch; do
 				patch -p1 < "${patches}"
