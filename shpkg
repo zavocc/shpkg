@@ -181,18 +181,6 @@ check-shpkg-build(){
 }
 
 shpkg-do-install(){
-	local PACKAGE_NAME
-	local DO_REMOVE_BUILDDEPS
-	local STRIP_TARBALL
-	local OUTPUT_CURL
-	local EXTRACTOR_MODE
-	local EXTRACTOR_PARAMS
-	local SRCDIR
-	local yesno
-	local guess_distro
-	local guess_arch
-	local real_arch
-
 	SRCDIR="pkgsrc"
 
 	check-package-ifexists # checks for package directory metadata
@@ -455,10 +443,6 @@ shpkg-do-install(){
 }
 
 shpkg-do-remove(){
-	local PACKAGE_NAME
-	local DO_REMOVE_DEPS
-	local yesno
-
 	check-package-ifexists # checks for package directory metadata
 	check-shpkg-build # checks for SHPKG_BUILD script
 
@@ -522,9 +506,6 @@ shpkg-do-remove(){
 }
 
 shpkg-do-query(){
-	local PACKAGE_NAME
-	local PAGER_METHOD
-
 	check-package-ifexists # checks for package directory metadata
 	check-shpkg-build # checks for SHPKG_BUILD script
 
@@ -562,8 +543,6 @@ shpkg-do-list(){
 }
 
 shpkg-show-package-info(){
-	local PACKAGE_NAME
-
 	check-package-ifexists # checks for package directory metadata
 	check-shpkg-build # checks for SHPKG_BUILD script
 
@@ -621,12 +600,6 @@ shpkg-show-package-info(){
 }
 
 shpkg-do-update(){
-	local FETCH_CMD
-	local FETCH_METHOD
-	local STRIP_METHOD
-	local SED
-	local MOVE
-
 	# check sources list file
 	if [ ! -e "${SHPKG_REPOLIST}" ]; then
 		echo "${BRED}Error: ${BOLD}you don't have a repository list file in ${SHPKG_REPOLIST}! please specify a repo url to fetch package buildscripts${NOATTR}"
