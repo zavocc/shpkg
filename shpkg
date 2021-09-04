@@ -406,6 +406,7 @@ shpkg-do-install(){
 			for patches in ../*.patch; do
 				patch -p1 < "${patches}"
 			done
+			cd ..
 		fi
 	fi
 
