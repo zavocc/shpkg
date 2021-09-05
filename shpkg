@@ -91,11 +91,11 @@ case "${SHPKG_DISTRO}" in
 		;;
 	debian)
 		SHPKG_INSTALL="apt install --assume-yes"
-		SHPKG_REMOVE="apt purge"
+		SHPKG_REMOVE="apt purge -y"
 		;;
 	archlinux)
 		SHPKG_INSTALL="pacman -S --noconfirm --needed"
-		SHPKG_REMOVE="pacman -Rscn"
+		SHPKG_REMOVE="pacman -R --noconfirm"
 		;;
 	nixos)
 		SHPKG_INSTALL="nix-env -i"
@@ -103,7 +103,7 @@ case "${SHPKG_DISTRO}" in
 		;;
 	redhat)
 		SHPKG_INSTALL="dnf install --assumeyes"
-		SHPKG_REMOVE="dnf remove"
+		SHPKG_REMOVE="dnf remove --assumeyes"
 		;;
 	alpine)
 		SHPKG_INSTALL="apk add"
