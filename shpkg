@@ -42,7 +42,7 @@ for deps in xz tar curl less; do
 	fi
 done
 
-# check distro
+# check distribution by checking package manager
 if [ ! -e "${HOME}/.shpkg-lock" ]; then
 	if [ -e "/usr/bin/apt" ]; then
 		distro="debian"
@@ -57,19 +57,7 @@ if [ ! -e "${HOME}/.shpkg-lock" ]; then
 	elif [ -e "${PREFIX:-/data/data/com.termux/files/usr}/bin/apt" ]; then
 		distro="termux"
 	else
-		cat <<- EOF
-		${BRED}Error: ${BOLD}this utility is not compatible with your operating system${NOATTR}
-
-		Supported ones are:
-		 - Debian
-		 - Arch Linux
-		 - NixOS
-		 - Fedora and other red-hat distros
-		 - Alpine
-		 - Android (Termux)
-
-		${BOLD}This would take some time to adapt new distros${NOATTR}
-		EOF
+		echo "${BRED}Error: ${BOLD}this utility is not supported within your operating system${NOATTR}"
 		exit 2
 	fi
 echo "${distro}" > "${HOME}/.shpkg-lock"
