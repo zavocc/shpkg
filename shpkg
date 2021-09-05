@@ -90,17 +90,17 @@ esac
 # set preferred distro-specific configurations
 case "${SHPKG_DISTRO}" in
 	termux)
-		if [ "${SHPKG_ASSUME_FORCE_YES}" == "1" ]; then ASSUME_YES="--assume-yes"; fi
+		if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--assume-yes"; fi
 		SHPKG_INSTALL="pkg install --assume-yes"
 		SHPKG_REMOVE="pkg uninstall --purge ${ASSUME_YES}"
 		;;
 	debian)
-		if [ "${SHPKG_ASSUME_FORCE_YES}" == "1" ]; then ASSUME_YES="--assume-yes"; fi
+		if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--assume-yes"; fi
 		SHPKG_INSTALL="apt install --assume-yes"
 		SHPKG_REMOVE="apt purge ${ASSUME_YES}"
 		;;
 	archlinux)
-		if [ "${SHPKG_ASSUME_FORCE_YES}" == "1" ]; then ASSUME_YES="--noconfirm"; fi
+		if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--noconfirm"; fi
 		SHPKG_INSTALL="pacman -S --noconfirm --needed"
 		SHPKG_REMOVE="pacman -R ${ASSUME_YES}"
 		;;
@@ -109,12 +109,12 @@ case "${SHPKG_DISTRO}" in
 		SHPKG_REMOVE="nix-env -e"
 		;;
 	redhat)
-		if [ "${SHPKG_ASSUME_FORCE_YES}" == "1" ]; then ASSUME_YES="--assumeyes"; fi
+		if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--assumeyes"; fi
 		SHPKG_INSTALL="dnf install --assumeyes"
 		SHPKG_REMOVE="dnf remove ${ASSUME_YES}"
 		;;
 	alpine)
-		if [ "${SHPKG_ASSUME_FORCE_YES}" == "1" ]; then ASSUME_YES=""; else ASSUME_YES="-i"; fi
+		if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES=""; else ASSUME_YES="-i"; fi
 		SHPKG_INSTALL="apk add"
 		SHPKG_REMOVE="apk del ${ASSUME_YES}"
 		;;
