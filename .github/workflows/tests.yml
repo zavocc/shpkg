@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TERM: "xterm-256color"
+      SHPKG_FORCE_ASSUME_YES: "1"
     steps:
       - uses: actions/checkout@v2
       - name: Setup buildscripts
