@@ -432,7 +432,7 @@ shpkg-do-install(){
 	# remove build dependencies if possible
 	if [ "${DO_REMOVE_BUILDDEPS:-n}" == "y" ]; then
 		echo "${BGREEN}==> ${BOLD}Removing build dependencies to save space...${NOATTR}"
-		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_build_depends[@]}"
+		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_build_depends[@]}" || :
 	fi
 
 	echo "${BGREEN}==> ${BOLD}Success installing package: ${PACKAGE_NAME}${NOATTR}"
