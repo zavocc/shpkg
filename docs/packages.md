@@ -66,7 +66,7 @@ Those functions are used to install packages, all of these functions are optiona
 | `shpkg_src_use_git`            | Boolean                              | Yes (if the source code url is git url) | Tell whether to use `git` to fetch the source code and include submodules by default (this option is available since `shpkg` v1.2.0) |
 | `shpkg_git_depth`              | 1...9                                   | No                | Pass the option `--depth=` to `git`, this method saves disk space when cloning large repositories
 | `shpkg_git_branch`             | repository branch                       | No                | By default, it will clone the repository using `master` branch, use this option to use other branches
-| `shpkg_git_skip_include_submodule` | true/false                          | No                | Tell not to include submodules when git cloning a repository
+| `shpkg_git_skip_include_submodule` | Boolean                        | No                | Tell not to include submodules when git cloning a repository
 
 ## Build script suggestions
 * For dropping privileges and executing commands as `root`, instead of using `sudo` command, interpret `${SHPKG_SUDO}` variable instead: \
