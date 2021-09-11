@@ -495,7 +495,7 @@ shpkg-do-remove(){
 	# remove dependencies if that's so
 	if [ "${DO_REMOVE_DEPS:-n}" == "y" ]; then
 		echo "${BGREEN}==> ${BOLD}Removing runtime dependencies to save space...${NOATTR}"
-		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}"
+		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}" || :
 	fi
 
 	echo "${BGREEN}==> ${BOLD}Removal of the package ${PACKAGE_NAME} was successful!${NOATTR}"
