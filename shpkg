@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# shpkg - the package manager written in bash, specifically for linux
+# shpkg - the package manager written in bash for NIX
 
 set -euo pipefail # Bash strict mode
 
@@ -7,7 +7,7 @@ set -euo pipefail # Bash strict mode
 SHPKG_NAME="shpkg"
 
 # shpkg version
-SHPKG_VERSION="1.4.1"
+SHPKG_VERSION="1.5.0"
 
 # shpkg maintainer
 SHPKG_MAINTAINER="marcusz"
