@@ -217,7 +217,7 @@ shpkg-do-install(){
 	echo "${BGREEN}==> ${BOLD}Target Package Installation: ${PACKAGE_NAME} (On $(date))${NOATTR}"
 	sleep 5
 
-	if [ -n "${SHPKG_NO_INSTALL_DEPS:-}" ]; then
+	if [ ! -n "${SHPKG_NO_INSTALL_DEPS:-}" ]; then
 		# install build dependencies if possible
 		if [ -n "${shpkg_build_depends:-}" ]; then
 			echo "${BGREEN}==> ${BOLD}Installing build dependencies for: ${PACKAGE_NAME}${NOATTR}"
@@ -393,7 +393,7 @@ shpkg-do-remove(){
 			;;
 	esac
 
-	if [ -n "${SHPKG_NO_INSTALL_DEPS:-}" ]; then
+	if [ ! -n "${SHPKG_NO_INSTALL_DEPS:-}" ]; then
 		if [ -n "${shpkg_depends:-}" ]; then
 			read -r -p "${BOLD}Do you also want to uninstall dependencies as well? (Y/n)${NOATTR} " yesno
 			case "${yesno}" in
