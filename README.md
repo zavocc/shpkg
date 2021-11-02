@@ -4,13 +4,17 @@ Simple package manager written in bash inspired by makepkg
 `shpkg` lets you install packages with the use of build scripts
 
 # Supported now
-currently, the following distributions supported are:
-* Debian and it's derivatives
-* Arch Linux
-* NixOS (untested)
-* Redhat based distros (with `dnf` package manager like fedora)
-* Alpine
-* Android (Termux)
+It supports many distributions however notable os is supported and features will be enabled such as dependency installation
+- [x] Debian
+- [x] Alpine Linux
+- [x] Fedora and RedHat
+- [x] Termux
+- [x] Windows (WSL2)
+
+Other OS may supported but functionality is limited and not guarantee to work with:
+- [ ] macOS 
+- [ ] Windows (cygwin)
+- [ ] Windows (bash only)
 
 # Dependencies for shpkg
 Current requirements for shpkg are
@@ -85,6 +89,4 @@ shpkg query <package>
 
 *It opens `less` as a default viewing of `shpkg` build scripts, if you want to change that behaviour, you can specify `PAGER=<viewer>` environment variable*
 
-# To-Do
-* ~~Add `shpkg update` option (similar to `apt update`)~~ done
 

@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
-# shpkg - the package manager written in bash for NIX
+# shpkg - the package manager written in bash
 
-set -euo pipefail # Bash strict mode
+set -e -u -o pipefail # Bash strict mode
+#set -x -v # debug
 
 # shpkg name
 SHPKG_NAME="shpkg"
 
 # shpkg version
-SHPKG_VERSION="1.5.0"
+SHPKG_VERSION="1.6.0"
 
 # shpkg maintainer
 SHPKG_MAINTAINER="marcusz"
@@ -42,86 +43,41 @@ for deps in xz tar curl less; do
 	fi
 done
 
-# check distribution by checking package manager
-if [ ! -e "${HOME}/.shpkg-lock" ]; then
-	if [ -e "/usr/bin/apt" ]; then
-		distro="debian"
-	elif [ -e "/usr/bin/pacman" ]; then
-		distro="archlinux"
-	elif [ -e "/usr/bin/nix-env" ]; then
-		distro="nixos"
-	elif [ -e "/usr/bin/dnf" ]; then
-		distro="redhat"
-	elif [ -e "/sbin/apk" ]; then
-		distro="alpine"
-	elif [ -e "${PREFIX:-/data/data/com.termux/files/usr}/bin/apt" ]; then
-		distro="termux"
-	else
-		echo "${BRED}Error: ${BOLD}this utility is not supported within your operating system${NOATTR}"
-		exit 2
-	fi
-echo "${distro}" > "${HOME}/.shpkg-lock"
-fi
-
-# set distro
-SHPKG_DISTRO="$(cat "${HOME}/.shpkg-lock")"
-
-# check root
-case "${SHPKG_DISTRO}" in
-	termux)
+# check root which defines ANDROID
+if [ "$(id -u)" == "0" ]; then
+	SHPKG_SUDO=""
+else
+	if [ -e /system/bin/app_process ]; then
 		SHPKG_SUDO=""
-		;;
-	debian|archlinux|nixos|redhat|alpine)
-		if [ "$(id -u)" == "0" ]; then
-			SHPKG_SUDO=""
-		else
-			SHPKG_SUDO="sudo -Es"
-		fi
-		;;
-	*)
-		exit 2
-		;;
-esac
+	else
+		SHPKG_SUDO="sudo -Es"
+	fi
+fi
 
 # checks if SHPKG_ASSUME_FORCE_YES variable is set to 1
 # this is used for non-interactive installs
 # this kind of variable will non-interactively remove packages. use with caution
 
 # set preferred distro-specific configurations
-case "${SHPKG_DISTRO}" in
-	termux)
-		if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--assume-yes"; fi
-		SHPKG_INSTALL="pkg install --assume-yes"
-		SHPKG_REMOVE="pkg uninstall --purge ${ASSUME_YES:-}"
-		;;
-	debian)
-		if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--assume-yes"; fi
-		SHPKG_INSTALL="apt install --assume-yes"
-		SHPKG_REMOVE="apt purge ${ASSUME_YES:-}"
-		;;
-	archlinux)
-		if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--noconfirm"; fi
-		SHPKG_INSTALL="pacman -S --noconfirm --needed"
-		SHPKG_REMOVE="pacman -R ${ASSUME_YES:-}"
-		;;
-	nixos)
-		SHPKG_INSTALL="nix-env -i"
-		SHPKG_REMOVE="nix-env -e"
-		;;
-	redhat)
-		if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--assumeyes"; fi
-		SHPKG_INSTALL="dnf install --assumeyes"
-		SHPKG_REMOVE="dnf remove ${ASSUME_YES:-}"
-		;;
-	alpine)
-		if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES=""; else ASSUME_YES="-i"; fi
-		SHPKG_INSTALL="apk add"
-		SHPKG_REMOVE="apk del ${ASSUME_YES:-}"
-		;;
-	*)
-		exit 2
-		;;
-esac
+if [ -e "${PREFIX:-/usr}/bin/apt-get" ] >/dev/null 2>&1; then
+	if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--assume-yes"; fi
+	SHPKG_INSTALL="apt-get install --assume-yes"
+	SHPKG_REMOVE="apt-get purge ${ASSUME_YES:-}"
+elif [ -e "/usr/bin/pacman" ] 2>&1; then
+	if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--noconfirm"; fi
+	SHPKG_INSTALL="pacman -S --noconfirm --needed"
+	SHPKG_REMOVE="pacman -R ${ASSUME_YES:-}"
+elif [ -e "/usr/bin/dnf" ]; then
+	if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--assumeyes"; fi
+	SHPKG_INSTALL="dnf install --assumeyes"
+	SHPKG_REMOVE="dnf remove ${ASSUME_YES:-}"
+elif [ -e "/sbin/apk" ]; then
+	if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES=""; else ASSUME_YES="-i"; fi
+	SHPKG_INSTALL="apk add"
+	SHPKG_REMOVE="apk del ${ASSUME_YES:-}"
+else
+SHPKG_NO_INSTALL_DEPS=1
+fi
 
 ARG_ACTION="${1:-}"
 ARG_PACKAGE="${2:-}"
@@ -193,50 +149,6 @@ shpkg-do-install(){
 		PACKAGE_NAME="${ARG_PACKAGE}"
 	fi
 
-	# check if shpkg_source is specified
-	if [ -z "${shpkg_source:-}" ]; then
-		echo "${BRED}Error: ${BOLD}please specify a source code url of a package!${NOATTR}"
-		exit 2
-	fi
-
-	# if shpkg_distro_only value is specified, guess and check
-	# this allows for package to install in a specific distro only
-	if [ -n "${shpkg_distro_only:-}" ]; then
-		case "${shpkg_distro_only[@]}" in
-			debian|ubuntu|kali|devuan)
-				guess_distro="debian"
-				;;
-			arch*|artix|endeavouros|arcolinux|manjaro)
-				guess_distro="archlinux"
-				;;
-			nixos)
-				guess_distro="nixos"
-				;;
-			fedora|rhel|centos|redhat)
-				guess_distro="redhat"
-				;;
-			alpine)
-				guess_distro="alpine"
-				;;
-			termux|android)
-				guess_distro="termux"
-				;;
-			*)
-				cat <<- EOM
-				${BRED}Error: ${BOLD}the distro ${shpkg_distro_only} isn't supported or invalid
-
-				Supported distros are (debian, archlinux, nixos, redhat, alpine, termux)${NOATTR}
-				EOM
-				exit 2
-		esac
-
-		# check if the package matches through distro requirement, else abort
-		if [ ! "${guess_distro}" == "${SHPKG_DISTRO}" ]; then
-			echo "${BRED}Error: ${BOLD}package ${PACKAGE_NAME} isn't compatible with your distribution${NOATTR}"
-			exit 2
-		fi
-	fi
-
 	# some packages aren't compatible with the architecture
 	# the shpkg_arch_only will facilitate that
 	if [ -n "${shpkg_arch_only:-}" ]; then
@@ -305,100 +217,104 @@ shpkg-do-install(){
 	echo "${BGREEN}==> ${BOLD}Target Package Installation: ${PACKAGE_NAME} (On $(date))${NOATTR}"
 	sleep 5
 
-	# install build dependencies if possible
-	if [ -n "${shpkg_build_depends:-}" ]; then
-		echo "${BGREEN}==> ${BOLD}Installing build dependencies for: ${PACKAGE_NAME}${NOATTR}"
-		eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_build_depends[@]}"
+	if [ -n "${SHPKG_NO_INSTALL_DEPS:-}" ]; then
+		# install build dependencies if possible
+		if [ -n "${shpkg_build_depends:-}" ]; then
+			echo "${BGREEN}==> ${BOLD}Installing build dependencies for: ${PACKAGE_NAME}${NOATTR}"
+			eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_build_depends[@]}"
 
-		# ask for user if wanted to remove build dependencies
-		read -r -p "${BOLD}I: Remove build dependencies after install? (Y/n)${NOATTR} " yesno
+			# ask for user if wanted to remove build dependencies
+			read -r -p "${BOLD}I: Remove build dependencies after install? (Y/n)${NOATTR} " yesno
 
-		case "${yesno}" in
-			Y*|y*)
-				DO_REMOVE_BUILDDEPS="y"
-				;;
-			N*|n*)
-				DO_REMOVE_BUILDDEPS="n"
-				;;
-		esac
-	fi
+			case "${yesno}" in
+				Y*|y*)
+					DO_REMOVE_BUILDDEPS="y"
+					;;
+				N*|n*)
+					DO_REMOVE_BUILDDEPS="n"
+					;;
+			esac
+		fi
 
-	# install runtime dependencies if possible
-	if [ -n "${shpkg_depends:-}" ]; then
-		echo "${BGREEN}==> ${BOLD}Installing runtime dependencies for: ${PACKAGE_NAME}${NOATTR}"
-		eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_depends[@]}"
+		# install runtime dependencies if possible
+		if [ -n "${shpkg_depends:-}" ]; then
+			echo "${BGREEN}==> ${BOLD}Installing runtime dependencies for: ${PACKAGE_NAME}${NOATTR}"
+			eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_depends[@]}"
+		fi
 	fi
 
 	# get source code and go to the desired directory!
 	cd "${SHPKG_WHATISDIR}"
 	rm -rf "${SRCDIR}"
 
-	# first, check if shpkg_source_use_git was given
-	if [ "${shpkg_src_use_git:-false}" == "true" ]; then
-		# check if shpkg_git_branch was specified, otherwise we could use the master branch
-		if [ -n "${shpkg_git_branch:-}" ]; then
-			GIT_BRANCH="-b ${shpkg_git_branch[@]}"
-		else
-			GIT_BRANCH="-b master"
-		fi
-
-		# check if we skip include submodules
-		if [ "${shpkg_git_skip_include_submodule:-false}" == "true" ]; then
-			SUBMODULE_INCLUDE=""
-		else
-			SUBMODULE_INCLUDE="--recursive"
-		fi
-
-		# check if shpkg_git_depth values is specified
-		if [ -n "${shpkg_git_depth:-}" ]; then
-			GIT_DEPTH="--depth=${shpkg_git_depth[@]}"
-		else
-			GIT_DEPTH=""
-		fi
-	else
-		# check if the archive was explicitly chosen into zip, by default we use tar
-		if [ "${shpkg_source_archive_zip:-false}" == "true" ]; then
-			OUTPUT_CURL="sources.zip"
-			EXTRACTOR_PARAMS="-d ${SRCDIR}"
-			# check whether to enable verbose extraction
-			if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
-				EXTRACTOR_MODE="unzip"
+	if [ -n "${shpkg_source:-}" ]; then
+		# first, check if shpkg_source_use_git was given
+		if [ "${shpkg_src_use_git:-false}" == "true" ]; then
+			# check if shpkg_git_branch was specified, otherwise we could use the master branch
+			if [ -n "${shpkg_git_branch:-}" ]; then
+				GIT_BRANCH="-b ${shpkg_git_branch[@]}"
 			else
-				EXTRACTOR_MODE="unzip -qq"
+				GIT_BRANCH="-b master"
+			fi
+
+			# check if we skip include submodules
+			if [ "${shpkg_git_skip_include_submodule:-false}" == "true" ]; then
+				SUBMODULE_INCLUDE=""
+			else
+				SUBMODULE_INCLUDE="--recursive"
+			fi
+
+			# check if shpkg_git_depth values is specified
+			if [ -n "${shpkg_git_depth:-}" ]; then
+				GIT_DEPTH="--depth=${shpkg_git_depth[@]}"
+			else
+				GIT_DEPTH=""
 			fi
 		else
-			OUTPUT_CURL="sources.tar"
-			# check if shpkg_no_strip_tarball is enabled
-			# normally all source tarballs have subdirectories in it
-			if [ ! "${shpkg_no_strip_tarball:-false}" == "true" ]; then
-				EXTRACTOR_PARAMS="-C ${SRCDIR} --strip=1"
+			# check if the archive was explicitly chosen into zip, by default we use tar
+			if [ "${shpkg_source_archive_zip:-false}" == "true" ]; then
+				OUTPUT_CURL="sources.zip"
+				EXTRACTOR_PARAMS="-d ${SRCDIR}"
+				# check whether to enable verbose extraction
+				if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
+					EXTRACTOR_MODE="unzip"
+				else
+					EXTRACTOR_MODE="unzip -qq"
+				fi
 			else
-				EXTRACTOR_PARAMS="-C ${SRCDIR}"
-			fi
-			# check whether to enable verbose extraction
-			if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
-				EXTRACTOR_MODE="tar -xvf"
-			else
-				EXTRACTOR_MODE="tar -xf"
+				OUTPUT_CURL="sources.tar"
+				# check if shpkg_no_strip_tarball is enabled
+				# normally all source tarballs have subdirectories in it
+				if [ ! "${shpkg_no_strip_tarball:-false}" == "true" ]; then
+					EXTRACTOR_PARAMS="-C ${SRCDIR} --strip=1"
+				else
+					EXTRACTOR_PARAMS="-C ${SRCDIR}"
+				fi
+				# check whether to enable verbose extraction
+				if [ "${shpkg_enable_verbose_logging:-false}" == "true" ]; then
+					EXTRACTOR_MODE="tar -xvf"
+				else
+					EXTRACTOR_MODE="tar -xf"
+				fi
 			fi
 		fi
-	fi
 
-	# get source code
-	echo "${BGREEN}==> ${BOLD}Downloading sources...${NOATTR}"
-	if [ "${shpkg_src_use_git:-false}" == "true" ]; then
-		eval "git clone ${shpkg_source[@]} ${GIT_BRANCH[@]} ${SUBMODULE_INCLUDE} ${GIT_DEPTH[@]} ${SRCDIR}"
-	else
-		curl --location --fail "${shpkg_source[@]}" --output "${OUTPUT_CURL}"
-		mkdir -p "${SRCDIR}"
+		# get source code
+		echo "${BGREEN}==> ${BOLD}Downloading sources...${NOATTR}"
+		if [ "${shpkg_src_use_git:-false}" == "true" ]; then
+			eval "git clone ${shpkg_source[@]} ${GIT_BRANCH[@]} ${SUBMODULE_INCLUDE} ${GIT_DEPTH[@]} ${SRCDIR}"
+		else
+			curl --location --fail "${shpkg_source[@]}" --output "${OUTPUT_CURL}"
+			mkdir -p "${SRCDIR}"
 
-		# extract sources
-		echo "${BGREEN}==> ${BOLD}Extracting sources${NOATTR}"
-		eval "${EXTRACTOR_MODE} ${OUTPUT_CURL} ${EXTRACTOR_PARAMS}"
+			# extract sources
+			echo "${BGREEN}==> ${BOLD}Extracting sources${NOATTR}"
+			eval "${EXTRACTOR_MODE} ${OUTPUT_CURL} ${EXTRACTOR_PARAMS}"
+		fi
 	fi
 
 	# check if auto-patch is disabled, if shpkg_disable_auto_patch_src is set will not apply patch automatically
-	if [ ! "${shpkg_disable_auto_patch_src:-false}" == "true" ]; then
+	if [ -n "${shpkg_source:-}" ] && [ ! "${shpkg_disable_auto_patch_src:-false}" == "true" ]; then
 		# patch source code if necessary
 		cd "${SRCDIR}"
 		for patches in ../*.patch; do
@@ -477,25 +393,27 @@ shpkg-do-remove(){
 			;;
 	esac
 
-	if [ -n "${shpkg_depends:-}" ]; then
-		read -r -p "${BOLD}Do you also want to uninstall dependencies as well? (Y/n)${NOATTR} " yesno
-		case "${yesno}" in
-			Y*|y*)
-				DO_REMOVE_DEPS="y"
-				;;
-			N*|n*)
-				DO_REMOVE_DEPS="n"
-				;;
-			*)
-				DO_REMOVE_DEPS="y"
-				;;
-		esac
-	fi
+	if [ -n "${SHPKG_NO_INSTALL_DEPS:-}" ]; then
+		if [ -n "${shpkg_depends:-}" ]; then
+			read -r -p "${BOLD}Do you also want to uninstall dependencies as well? (Y/n)${NOATTR} " yesno
+			case "${yesno}" in
+				Y*|y*)
+					DO_REMOVE_DEPS="y"
+					;;
+				N*|n*)
+					DO_REMOVE_DEPS="n"
+					;;
+				*)
+					DO_REMOVE_DEPS="y"
+					;;
+			esac
+		fi
 
-	# remove dependencies if that's so
-	if [ "${DO_REMOVE_DEPS:-n}" == "y" ]; then
-		echo "${BGREEN}==> ${BOLD}Removing runtime dependencies to save space...${NOATTR}"
-		eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}" || :
+		# remove dependencies if that's so
+		if [ "${DO_REMOVE_DEPS:-n}" == "y" ]; then
+			echo "${BGREEN}==> ${BOLD}Removing runtime dependencies to save space...${NOATTR}"
+			eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}" || :
+		fi
 	fi
 
 	echo "${BGREEN}==> ${BOLD}Removal of the package ${PACKAGE_NAME} was successful!${NOATTR}"
