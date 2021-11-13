@@ -1,0 +1,46 @@
+# a sample build script for shpkg
+# you may use this template for reference
+# if you want to use this template as an example. then you may wish to remove commented lines
+#
+# Indentation: spaces 4
+# if you wish to use heredocs in your script then you may use tabs
+
+# a package name 
+shpkg_name="Hello World"
+
+# description
+shpkg_description="A sample hello world for shpkg"
+
+# dependencies (runtime, will stay until you removed a package)
+# shpkg_depends="clang"
+
+# build dependencies (build time, so it will be removed later)
+shpkg_build_depends="clang"
+
+# version
+# shpkg_version=1.0
+
+# source code.
+# shpkg_source=https://foo.bar/example-source.tar.gz
+
+
+prepare(){
+    # check if we have cc
+    if ! command -v cc >/dev/null; then
+        echo "[!] Missing c compiler! please install clang or gcc"
+        exit 2
+    fi
+}
+
+build(){
+    clang hello_world.c -o shpkg-hello
+}
+
+finish(){
+    ${SHPKG_SUDO} install -m 755 shpkg-hello ${PREFIX:-/usr/local}/bin/shpkg-hello
+    echo "[i] Installation successful. you can execute hello world as 'shpkg-hello'"
+}
+
+remove(){
+    ${SHPKG_SUDO} rm -rf ${PREFIX:-/usr/local}/bin/shpkg-hello
+}
