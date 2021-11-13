@@ -1,92 +1,77 @@
-# shpkg
-Simple package manager written in bash inspired by makepkg
+# shpkg (shell-scripted package manager)
+A Package manager written in `bash` with a `makepkg`-like format similar
 
-`shpkg` lets you install packages with the use of build scripts
+# Why?
+* Because I can
+* Because I have free time in my hands
+* Because I am bored
+* Why not?
 
-# Supported now
-It supports many distributions however notable os is supported and features will be enabled such as dependency installation
-- [x] Debian
-- [x] Alpine Linux
-- [x] Fedora and RedHat
-- [x] Termux
-- [x] Windows (WSL2)
+Above those are the reasons why i made this script 😏
 
-Other OS may supported but functionality is limited and not guarantee to work with:
-- [ ] macOS 
-- [ ] Windows (cygwin)
-- [ ] Windows (bash only)
+# Table of Contents
+* [Requirements](#requirements)
+* [Installation](#installation)
+* [Features](#features)
+* [Build scripts examples](#build_scripts_examples)
+* [Contributing](#contributing)
 
-# Dependencies for shpkg
-Current requirements for shpkg are
-* bash 4.0+
-* curl
-* less
-* xz-utils
-* sudo (not required for termux)
-
-Optional dependencies for shpkg
-* unzip (for dealing with zip tarballs)
-* git (for fetching source code via git method)
-
-### ⚠ Word of Warning!!! ⚠
-We have tested `shpkg` in a wide variety of systems like debian, termux, alpine
-
-Some packages may break your system or leave it in a inconsistent state, so before trying `shpkg` it is highly recommended to test it on chroot environment or in a virtual machine
-
-It is also highly recommended not to remove build dependencies or runtime dependencies if it asks you as it does not track dependencies carefully on what other packages depends on, this would make your system unstable and possibly affect the other packages to be uninstalled as well unconditionally so review the build scripts first before doing it
+# Requirements
+* **Bash** - obviously. suggested is the 4.0+ bash version
+* **Git** - for the use of updating repository information and fetching buildscripts
+* **sudo** - for privilege dropping (we don't need to run this script as root, we call it)
+* **unzip** - for dealing with `.zip` archives
+* **tar** - needed. including `gzip` and `xzip` archivers
 
 # Installation
-Run the command:
-```
-. <(curl -sL https://git.io/setup-shpkg.sh)
-```
-to install `shpkg` script on your system
+Clone this repository or download shpkg script here from this repository
 
-# Setting up buildscripts
-### Automatically adding a repository
-Run `shpkg update` first to download buildscripts, the repo list file located in `~/.config/shpkg_repo.list`. for more information please see [shpkg repo docs](./docs/repo.md)
+# Features
+Features include:
+* Support for tracking dependency needs for a package (this feature is only available in Debian, Arch, Alpine Linux and Fedora)
+* Easy to setup binary from source without configuring each time
+* Compilation of programs easily for your convinence
+* It's quite similar to portage, homebrew or makepkg
+* Portable and supports most operating systems (windows/macOS may have small support)
 
-the `update` function is quite experimental if you saw the known bugs
-### Manually adding a repository
-#### For every Linux distros
-```
-git clone https://github.com/shpkg/ports ~/.shpkg
-```
-#### For Termux
-```
-git clone https://github.com/shpkg/termux-ports ~/.shpkg
-```
+# Build scripts examples
+Sample build script
+```sh
+# package name
+shpkg_name="Hello World"
 
-# Package Installation
+# package build dependencies
+shpkg_build_depends="make automake gcc clang"
 
-For package installation, you can do
-```
-shpkg install <package>
-```
+# package architecture
+shpkg_arch_only=('amd64' 'i386')
 
-*NOTE: running `shpkg` under `sudo` isn't necessary, `shpkg` will use sudo automatically*
+# package version
+shpkg_version="2.9"
 
-before installing packages, you can list the packages you added by doing
-```
-shpkg list
-```
+# package source code
+shpkg_source="https://mirror.ossplanet.net/gnu/hello/hello-${shpkg_version}.tar.gz"
 
-# Package Uninstallation
-You can simply uninstall package by doing
-```
-shpkg uninstall <package>
-```
+prepare(){
+	cd "${SRCDIR}"
+	./configure --prefix=/opt/shpkg/gnu-hello
+}
 
-**Warning: if it ask you to remove runtime dependencies as well, check the buildscript dependency information first before trying to uninstall runtime dependencies, `shpkg` won't track dependencies that other packages depends on, this would remove some of the packages unconditionally**
+build(){
+	make -j$(nproc)
+}
 
-Depending on a package's build script, sometimes there's no `remove()` function and you won't be able to uninstall it properly, so be aware of that
+finish(){
+	${SHPKG_SUDO} make install
+}
 
-# Querying package Information
-You can look at the package's build script before installing so you will have the opportunity to look at them first before installing, you can do
-```
-shpkg query <package>
+remove(){
+	${SHPKG_SUDO} rm -rf /opt/shpkg/gnu-hello
+}
 ```
 
-*It opens `less` as a default viewing of `shpkg` build scripts, if you want to change that behaviour, you can specify `PAGER=<viewer>` environment variable*
+See the [docs](./docs/packages.md) for more information
 
-
+# Contributing
+You may contribute. issues and pull requests are welcome! you are also free to fork this repo! \
+If you have any further questions. you may ask in discussions tab
