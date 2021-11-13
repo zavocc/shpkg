@@ -30,12 +30,10 @@ jobs:
 
       - name: Execution Tests
         run: |
-          for exec in /opt/shpkg/hello-world/bin/shpkg-hello /usr/local/bin/shpkg-hello; do
-            if [ ! -f "${exec}" ]; then
-              echo "Installation isn't successful!"
-              exit 2
-            fi
-          done
+          if [ ! -f /usr/local/bin/shpkg-hello ]; then
+            echo "Installation isn't successful!"
+            exit 2
+          fi
 
           if ! shpkg-hello !>/dev/null 2>&1; then
             echo "Installation isn't successful!"
