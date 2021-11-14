@@ -102,9 +102,14 @@ https://example.com/foo/bar.zip
 Your repository root directory (`/`) should have build scripts directory which shown above. it will download and move all files to `~/shpkg` directory which contains all buildscripts
 
 Steps include:
-- It fetches URL's based on their file extension (git or tar archive)
+- It fetches URL's depending on their file extension (git or tar archive)
 - Extracts contents to temporary directory
 - Moves all directories from temporary directory to `~/.shpkg` directory
+
+Directory structure for your repository must be used as follows:
+- 📁 **root directory (/)** 
+- 📁 **package** 
+  - 📄`SHPKG_BUILD`
 
 # Contributing
 You may contribute. issues and pull requests are welcome! you are also free to fork this repo! \
