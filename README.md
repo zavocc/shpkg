@@ -14,18 +14,26 @@ Above those are the reasons why i made this script 😏
 - [Why?](#why)
 - [Table of Contents](#table-of-contents)
 - [Dependencies](#dependencies)
+	- [Optional Dependencies](#optional-dependencies)
 - [Installation](#installation)
 - [Features](#features)
 - [Build scripts](#build-scripts)
 - [Repositories](#repositories)
+- [FAQs](#faqs)
 - [Contributing](#contributing)
 
 # Dependencies
-* **Bash** - obviously. suggested is the 4.0+ bash version
-* **Git** - for the use of updating repository information and fetching buildscripts
-* **`sudo`** - for privilege dropping (we don't need to run this script as root, we call it)
-* **`unzip`** - for dealing with `.zip` archives
-* **`tar`** - needed. including `gzip` and `xzip` archivers
+* bash 4.0+ - the main dependency
+* posix compliant utilities (includes `cat`, `sed`, `less`, `rm`, `awk`, etc.) and `mktemp` which is included in major distributions and macOS as well
+
+## Optional Dependencies
+These dependencies are needed if you're performing certain tasks.
+* curl for source code or content downloading
+* git for source code fetching
+* unzip if you need to use zip source code 
+* tar (with gzip/xzip compressor) if you need to use tar source code
+
+these are mainly used for `update` function as well to download buildscripts and source code from internet sources
 
 # Installation
 It usually takes less than a minute to install. you may download [shpkg](./shpkg) script
@@ -110,6 +118,15 @@ Directory structure for your repository must be used as follows:
 - 📁 **root directory (/)** 
 - 📁 **package** 
   - 📄`SHPKG_BUILD`
+
+# FAQs
+> - Is this a POSIX compliant script?
+
+Yes but quite. this script is almost using POSIX functions but not all of them as this is a bash script that needs certain bash features
+
+> - Is windows supported?
+
+Yes but no. Windows is very different amongst POSIX/Unix standards, however you can install a fully-fledged mingw shell and git bash for windows
 
 # Contributing
 You may contribute. issues and pull requests are welcome! you are also free to fork this repo! \
