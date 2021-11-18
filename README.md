@@ -126,7 +126,10 @@ Yes but quite. this script is almost using POSIX functions but not all of them a
 
 > - Is windows supported?
 
-Yes but no. Windows is very different amongst POSIX/Unix standards, however you can install a fully-fledged mingw shell and git bash for windows
+Yes but no. Windows is very different amongst POSIX/Unix standards, you can install mingw/cygwin tools which includes bash and common unix tools
+
+however you may try [Scoop](https://github.com/ScoopInstaller/Scoop) as an awesome alternative
+
 
 # Contributing
 You may contribute. issues and pull requests are welcome! you are also free to fork this repo! \
