@@ -1,5 +1,5 @@
 # shpkg (shell-scripted package manager)
-A Package manager written in `bash` with a `makepkg`-like format similar
+A Package manager written in `bash` with a `makepkg`-like format
 
 # Why?
 * Because I can
