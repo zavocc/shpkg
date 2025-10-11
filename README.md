@@ -38,7 +38,7 @@ these are mainly used for `update` function as well to download buildscripts and
 # Installation
 It usually takes less than a minute to install. you may download [shpkg](./shpkg) script
 ```sh
-curl -fsSL https://raw.githubusercontent.com/WMCB-Tech/shpkg/master/shpkg | tee shpkg
+curl -fsSL https://raw.githubusercontent.com/zavocc/shpkg/master/shpkg | tee shpkg
 ```
 
 # Features
