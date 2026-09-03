@@ -47,7 +47,10 @@ Features include:
 * Simple and only includes core functionality
 * Compilation of programs easily for your convinence
 * It's quite similar to portage, homebrew or makepkg
-* Portable and supports most operating systems (windows/macOS may have small support)
+* Portable and supports most Linux distributions with other UNIX based OSes to follow.
+
+Note that this is still a hobby-stage project, the realistic roadmap for shpkg so far would be:
+* Modularization - rather than putting checks for existence of specific package managers and tar/zip/git commands within the single script, it should become a sourcable "dependency handlers" and "source code handlers". For instance, if the source code download requires authentication, a custom source code handler can authentication first before the source code is downloaded. Similarly, if a user has a custom dependency graph handler, it can be implemented as a dependency handler rather than relying on package managers mentioned above.
 
 # Build scripts
 Build scripts are stored in your home directory which is `~/.shpkg`. containing all build script directories 
@@ -122,14 +125,13 @@ Directory structure for your repository must be used as follows:
 # FAQs
 > - Is this a POSIX compliant script?
 
-Yes but quite. this script is almost using POSIX functions but not all of them as this is a bash script that needs certain bash features
+This script is written in bash so almost certainly it's not quite strictly POSIX compliant.
 
 > - Is windows supported?
 
-Yes but no. Windows is very different amongst POSIX/Unix standards, you can install mingw/cygwin tools which includes bash and common unix tools
+As natively? No. Windows is very different from UNIX which shpkg relies on the core concepts and utilities developers expect from UNIX-like and UNIX-based OSes such as existence of bash and filesystem layout, you can install mingw/cygwin tools which includes bash and common unix tools
 
-however you may try [Scoop](https://github.com/ScoopInstaller/Scoop) as an awesome alternative
-
+You better off using Winget instead.
 
 # Contributing
 You may contribute. issues and pull requests are welcome! you are also free to fork this repo! \
