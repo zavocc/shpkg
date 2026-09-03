@@ -10,8 +10,11 @@ set -e -u -o pipefail # Bash strict mode
 # shpkg package template directory
 # shpkg sources list
 # temporary directory
+
+# shellcheck disable=SC2034
 SHPKG_NAME="shpkg"
 SHPKG_VERSION="1.6.2"
+# shellcheck disable=SC2034
 SHPKG_MAINTAINER="marcusz"
 SHPKG_PKGDIRS="${HOME}/.shpkg"
 SHPKG_REPOLIST="${HOME}/.config/shpkg_repo.list"
@@ -39,13 +42,13 @@ for deps in xz tar curl less; do
 done
 
 # check root which defines ANDROID
-if [ "$(id -u)" == "0" ]; then
-    SHPKG_SUDO=""
+if (( EUID == 0 )); then
+    SHPKG_SUDO=()
 else
     if [ -e /system/bin/app_process ]; then
-        SHPKG_SUDO=""
+        SHPKG_SUDO=()
     else
-        SHPKG_SUDO="sudo -Es"
+        SHPKG_SUDO=(sudo -Es)
     fi
 fi
 
@@ -56,20 +59,20 @@ fi
 # set preferred distro-specific configurations
 if [ -e "${PREFIX:-/usr}/bin/apt-get" ] >/dev/null 2>&1; then
     if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--assume-yes"; fi
-    SHPKG_INSTALL="apt-get install --assume-yes"
-    SHPKG_REMOVE="apt-get purge ${ASSUME_YES:-}"
+    SHPKG_INSTALL=(apt-get install --assume-yes)
+    SHPKG_REMOVE=(apt-get purge "${ASSUME_YES:-}")
 elif [ -e "/usr/bin/pacman" ] 2>&1; then
     if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--noconfirm"; fi
-    SHPKG_INSTALL="pacman -S --noconfirm --needed"
-    SHPKG_REMOVE="pacman -R ${ASSUME_YES:-}"
+    SHPKG_INSTALL=(pacman -S --noconfirm --needed)
+    SHPKG_REMOVE=(pacman -R "${ASSUME_YES:-}")
 elif [ -e "/usr/bin/dnf" ]; then
     if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES="--assumeyes"; fi
-    SHPKG_INSTALL="dnf install --assumeyes"
-    SHPKG_REMOVE="dnf remove ${ASSUME_YES:-}"
+    SHPKG_INSTALL=(dnf install --assumeyes)
+    SHPKG_REMOVE=(dnf remove "${ASSUME_YES:-}")
 elif [ -e "/sbin/apk" ]; then
     if [ "${SHPKG_ASSUME_FORCE_YES:-}" == "1" ]; then ASSUME_YES=""; else ASSUME_YES="-i"; fi
-    SHPKG_INSTALL="apk add"
-    SHPKG_REMOVE="apk del ${ASSUME_YES:-}"
+    SHPKG_INSTALL=(apk add)
+    SHPKG_REMOVE=(apk del "${ASSUME_YES:-}")
 else
     SHPKG_NO_INSTALL_DEPS=1
 fi
@@ -135,7 +138,7 @@ shpkg-do-install() {
 
     # package name, else fallback
     if [ -n "${shpkg_name:-}" ]; then
-        PACKAGE_NAME="${shpkg_name[@]}"
+        PACKAGE_NAME="${shpkg_name[*]}"
     else
         PACKAGE_NAME="${ARG_PACKAGE}"
     fi
@@ -209,7 +212,7 @@ shpkg-do-install() {
         # install build dependencies if possible
         if [ -n "${shpkg_build_depends:-}" ]; then
             echo "${BGREEN}==> ${BOLD}Installing build dependencies for: ${PACKAGE_NAME}${NOATTR}"
-            eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_build_depends[@]}"
+            "${SHPKG_SUDO[@]}" "${SHPKG_INSTALL[@]}" "${shpkg_build_depends[@]}"
 
             # ask for user if wanted to remove build dependencies
             read -r -p "${BOLD}I: Remove build dependencies after install? (Y/n)${NOATTR} " yesno
@@ -227,7 +230,7 @@ shpkg-do-install() {
         # install runtime dependencies if possible
         if [ -n "${shpkg_depends:-}" ]; then
             echo "${BGREEN}==> ${BOLD}Installing runtime dependencies for: ${PACKAGE_NAME}${NOATTR}"
-            eval "${SHPKG_SUDO} ${SHPKG_INSTALL} ${shpkg_depends[@]}"
+            "${SHPKG_SUDO[@]}" "${SHPKG_INSTALL[@]}" "${shpkg_depends[*]}"
         fi
     fi
 
@@ -240,7 +243,7 @@ shpkg-do-install() {
         if [ "${shpkg_src_use_git:-false}" == "true" ]; then
             # check if shpkg_git_branch was specified, otherwise we could use the master branch
             if [ -n "${shpkg_git_branch:-}" ]; then
-                GIT_BRANCH="-b ${shpkg_git_branch[@]}"
+                GIT_BRANCH="-b ${shpkg_git_branch[*]}"
             else
                 GIT_BRANCH="-b master"
             fi
@@ -254,7 +257,7 @@ shpkg-do-install() {
 
             # check if shpkg_git_depth values is specified
             if [ -n "${shpkg_git_depth:-}" ]; then
-                GIT_DEPTH="--depth=${shpkg_git_depth[@]}"
+                GIT_DEPTH="--depth=${shpkg_git_depth[*]}"
             else
                 GIT_DEPTH=""
             fi
@@ -290,9 +293,9 @@ shpkg-do-install() {
         # get source code
         echo "${BGREEN}==> ${BOLD}Downloading sources...${NOATTR}"
         if [ "${shpkg_src_use_git:-false}" == "true" ]; then
-            eval "git clone ${shpkg_source[@]} ${GIT_BRANCH[@]} ${SUBMODULE_INCLUDE} ${GIT_DEPTH[@]} ${SRCDIR}"
+            git clone "${shpkg_source[*]}" "${GIT_BRANCH[*]}" "${SUBMODULE_INCLUDE}" "${GIT_DEPTH[*]}" "${SRCDIR}"
         else
-            curl --location --fail "${shpkg_source[@]}" --output "${OUTPUT_CURL}"
+            curl --location --fail "${shpkg_source[*]}" --output "${OUTPUT_CURL}"
             mkdir -p "${SRCDIR}"
 
             # extract sources
@@ -336,7 +339,7 @@ shpkg-do-install() {
     # remove build dependencies if possible
     if [ "${DO_REMOVE_BUILDDEPS:-n}" == "y" ]; then
         echo "${BGREEN}==> ${BOLD}Removing build dependencies to save space...${NOATTR}"
-        eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_build_depends[@]}" || :
+        "${SHPKG_SUDO[@]}" "${SHPKG_REMOVE[@]}" "${shpkg_build_depends[@]}" || :
     fi
 
     echo "${BGREEN}==> ${BOLD}Success installing package: ${PACKAGE_NAME}${NOATTR}"
@@ -400,7 +403,7 @@ shpkg-do-remove() {
         # remove dependencies if that's so
         if [ "${DO_REMOVE_DEPS:-n}" == "y" ]; then
             echo "${BGREEN}==> ${BOLD}Removing runtime dependencies to save space...${NOATTR}"
-            eval "${SHPKG_SUDO} ${SHPKG_REMOVE} ${shpkg_depends}" || :
+            "${SHPKG_SUDO[@]}" "${SHPKG_REMOVE[@]}" "${shpkg_depends[*]}" || :
         fi
     fi
 
@@ -452,7 +455,7 @@ shpkg-show-package-info() {
 
     # package name, else fallback
     if [ -n "${shpkg_name:-}" ]; then
-        PACKAGE_NAME="${shpkg_name[@]}"
+        PACKAGE_NAME="${shpkg_name[*]}"
     else
         PACKAGE_NAME="${ARG_PACKAGE}"
     fi
@@ -462,31 +465,31 @@ shpkg-show-package-info() {
     nam="${PACKAGE_NAME}"
     # description
     if [ -n "${shpkg_description:-}" ]; then
-        desc="${shpkg_description[@]:-}"
+        desc="${shpkg_description[*]:-}"
     else
         desc="Not Set"
     fi
     # version
     if [ -n "${shpkg_version:-}" ]; then
-        ver="${shpkg_version[@]:-}"
+        ver="${shpkg_version[*]:-}"
     else
         ver="Not Set"
     fi
     # dependencies
     if [ -n "${shpkg_depends:-}" ]; then
-        deps="${shpkg_depends[@]:-}"
+        deps="${shpkg_depends[*]:-}"
     else
         deps="Not set"
     fi
     # build depends
     if [ -n "${shpkg_build_depends:-}" ]; then
-        builddeps="${shpkg_build_depends[@]:-}"
+        builddeps="${shpkg_build_depends[*]:-}"
     else
         builddeps="Not Set"
     fi
     # source code
     if [ -n "${shpkg_source:-}" ]; then
-        src="${shpkg_source[@]:-}"
+        src="${shpkg_source[*]:-}"
     else
         src="Not Set"
     fi
@@ -508,7 +511,7 @@ shpkg-do-update() {
     fi
 
     # check if the repo list file is empty
-    if [ -z "$(cat ${SHPKG_REPOLIST})" ]; then
+    if [ -z "$(cat "${SHPKG_REPOLIST}")" ]; then
         echo "${BRED}Error: ${BOLD}please specify build script url (git/tar/zip) to fetch package buildscripts!${NOATTR}"
         exit 2
     fi
@@ -529,8 +532,8 @@ shpkg-do-update() {
     # they shouldn't contain subdirectories otherwise it would treat it as a package
     # to strip, add strip: uri, e.g.:
     # strip:https://foo.bar/repo-with-subdirectories.tar (Note that git method would ignore this situation)
-    while IFS=$'\n' read repolists; do
-        SHPKG_TMPDIR="$(mktemp -d -p ${SHPKG_PERSIST_TMPDIR})" # maybe messy but a worthy way to do it :)
+    while IFS=$'\n' read -r repolists; do
+        SHPKG_TMPDIR="$(mktemp -d -p "${SHPKG_PERSIST_TMPDIR}")" # maybe messy but a worthy way to do it :)
         case "${repolists}" in
         '#'*)
             continue
@@ -552,7 +555,7 @@ shpkg-do-update() {
 
         # check if they have strip: uri
         if [ "${FETCH_METHOD}" == "git" ]; then
-            FETCH_CMD="git clone --quiet"
+            FETCH_CMD=(git clone --quiet)
             STRIP_METHOD="${SHPKG_TMPDIR}"
             # check for strip: uri, if it specified (cuz of user's curiosity). ignore it and just sed it
             case "${repolists}" in
@@ -568,24 +571,24 @@ shpkg-do-update() {
             strip:*)
                 SED="y"
                 if [ "${FETCH_METHOD}" == "tar" ]; then
-                    FETCH_CMD="tar -xf"
-                    STRIP_METHOD="--strip=1 -C ${SHPKG_PKGDIRS}"
+                    FETCH_CMD=(tar -xf)
+                    STRIP_METHOD=(--strip=1 -C "${SHPKG_PKGDIRS}")
                     MOVE=""
                 else
-                    FETCH_CMD="unzip -qq"
-                    STRIP_METHOD="-d ${SHPKG_TMPDIR}"
+                    FETCH_CMD=(unzip -qq)
+                    STRIP_METHOD=(-d "${SHPKG_TMPDIR}")
                     MOVE="y"
                 fi
                 ;;
             *)
                 SED=""
                 if [ "${FETCH_METHOD}" == "tar" ]; then
-                    FETCH_CMD="tar -xf"
-                    STRIP_METHOD="-C ${SHPKG_PKGDIRS}"
+                    FETCH_CMD=(tar -xf)
+                    STRIP_METHOD=(-C "${SHPKG_PKGDIRS}")
                     MOVE=""
                 else
-                    FETCH_CMD="unzip -qq"
-                    STRIP_METHOD="-d ${SHPKG_PKGDIRS}"
+                    FETCH_CMD=(unzip -qq)
+                    STRIP_METHOD=(-d "${SHPKG_TMPDIR}")
                     MOVE=""
                 fi
                 ;;
@@ -596,22 +599,22 @@ shpkg-do-update() {
         if [ "${FETCH_METHOD}" == "git" ]; then
             # check for sed variable, ignore the strip: uri:
             if [ -n "${SED}" ]; then
-                eval "${FETCH_CMD} $(echo ${repolists} | sed 's/strip://g') ${SHPKG_TMPDIR}/reporoot"
+                "${FETCH_CMD[@]}" "$(echo "${repolists}" | sed 's/strip://g')" "${SHPKG_TMPDIR}/reporoot"
             else
-                eval "${FETCH_CMD} ${repolists} ${SHPKG_TMPDIR}/reporoot"
+                "${FETCH_CMD[@]}" "${repolists}" "${SHPKG_TMPDIR}/reporoot"
             fi
-            eval "mv ${SHPKG_TMPDIR}/reporoot/* ${SHPKG_PKGDIRS}/"
+            "${SHPKG_SUDO[@]}" "mv" "${SHPKG_TMPDIR}/reporoot/*" "${SHPKG_PKGDIRS}/"
         else
             if [ -n "${SED}" ]; then
-                curl --location --silent "$(echo ${repolists} | sed 's/strip://g')" --output "${SHPKG_TMPDIR}/output-repo"
+                curl --location --silent "$(echo "${repolists}" | sed 's/strip://g')" --output "${SHPKG_TMPDIR}/output-repo"
             else
                 curl --location --silent "${repolists}" --output "${SHPKG_TMPDIR}/output-repo"
             fi
             # begin package extract
-            eval "${FETCH_CMD} ${SHPKG_TMPDIR}/output-repo ${STRIP_METHOD}"
+            "${FETCH_CMD[@]}" "${SHPKG_TMPDIR}/output-repo" "${STRIP_METHOD[@]}"
             # check if we move things out
             if [ -n "${MOVE}" ]; then
-                eval "mv ${SHPKG_TMPDIR}/*/* ${SHPKG_PKGDIRS}/"
+                "${SHPKG_SUDO[@]}" "mv" "${SHPKG_TMPDIR}/*/*" "${SHPKG_PKGDIRS}/"
             fi
         fi
 
@@ -623,7 +626,7 @@ shpkg-do-update() {
         fi
 
         # delete tmpdir to clean things up
-        rm -rf ${SHPKG_PERSIST_TMPDIR}/*
+        rm -rf "${SHPKG_PERSIST_TMPDIR:?}/*"
     done <"${SHPKG_REPOLIST}"
 }
 
